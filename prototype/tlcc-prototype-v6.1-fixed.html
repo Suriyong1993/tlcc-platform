@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLCC App — Interactive Prototype v6.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Noto+Serif+Thai:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg:       #181A1F;
+  --surface:  #20232A;
+  --surface2: #252830;
+  --neon:     #00FF66;
+  --neon-dim: rgba(0,255,102,0.15);
+  --cyan:     #00D0FF;
+  --amber:    #FF9800;
+  --pink:     #FF6B9D;
+  --red:      #FF4B4B;
+  --text:     #FFFFFF;
+  --muted:    #9599A1;
+  --dark:     #111317;
+  --light:    #2A2E37;
+  --nd: 8px 8px 16px #111317,-8px -8px 16px #2A2E37;
+  --ns: 4px 4px 8px #111317,-4px -4px 8px #2A2E37;
+  --ni: inset 6px 6px 12px #111317,inset -6px -6px 12px #2A2E37;
+  --nis: inset 3px 3px 6px #111317,inset -3px -3px 6px #2A2E37;
+  --glow: 0 0 20px rgba(0,255,102,0.4),0 0 40px rgba(0,255,102,0.15);
+  --tglow: 0 0 10px rgba(0,255,102,0.8);
+  --fh: 'Noto Serif Thai',serif;
+  --fb: 'Noto Sans Thai','DM Sans',sans-serif;
+  --fm: 'JetBrains Mono',monospace;
+  --r: 0.3s cubic-bezier(.4,0,.2,1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);overflow:hidden;height:100vh;display:flex;flex-direction:column}
+
+/* ── PROTOTYPE CHROME ── */
+.proto-bar{
+  background:var(--surface);border-bottom:1px solid var(--light);
+  padding:.6rem 1.5rem;display:flex;align-items:center;gap:1.5rem;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:9999;flex-shrink:0;
+}
+.proto-title{font-family:var(--fm);font-size:.75rem;color:var(--neon);letter-spacing:2px}
+.proto-screens{display:flex;gap:.4rem;flex-wrap:wrap}
+.proto-btn{
+  background:var(--bg);border:1px solid var(--light);color:var(--muted);
+  padding:.35rem .9rem;border-radius:20px;font-size:.72rem;cursor:pointer;
+  font-family:var(--fb);transition:var(--r);white-space:nowrap;
+}
+.proto-btn:hover{color:var(--neon);border-color:var(--neon)}
+.proto-btn.active{background:var(--neon-dim);color:var(--neon);border-color:var(--neon);box-shadow:0 0 8px rgba(0,255,102,.3)}
+.proto-device{margin-left:auto;display:flex;align-items:center;gap:.5rem}
+.device-btn{background:none;border:1px solid var(--light);color:var(--muted);padding:.3rem .7rem;border-radius:8px;cursor:pointer;font-size:.75rem;transition:var(--r)}
+.device-btn:hover,.device-btn.active{color:var(--neon);border-color:var(--neon)}
+.proto-badge{font-family:var(--fm);font-size:.65rem;color:var(--muted);padding:.2rem .6rem;background:var(--bg);border-radius:10px;border:1px solid var(--light)}
+
+/* ── VIEWPORT ── */
+.viewport{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0f1014;position:relative}
+.viewport::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(0,255,102,.03) 0%,transparent 70%);pointer-events:none}
+
+/* ── DEVICE FRAME ── */
+.device{
+  position:relative;transition:all .4s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+.device.mobile{width:390px;height:844px;border-radius:44px;border:10px solid #0d0f12;box-shadow:0 0 0 1px #2a2e37,0 40px 80px rgba(0,0,0,.8),inset 0 0 0 1px #1a1d23,0 0 60px rgba(0,255,102,.06)}
+.device.tablet{width:768px;height:720px;border-radius:24px;border:8px solid #0d0f12;box-shadow:0 0 0 1px #2a2e37,0 40px 80px rgba(0,0,0,.8)}
+.device.desktop{width:1100px;height:720px;border-radius:12px;border:6px solid #0d0f12;box-shadow:0 0 0 1px #2a2e37,0 40px 80px rgba(0,0,0,.8)}
+
+/* Phone notch */
+.device.mobile::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:32px;background:#0d0f12;border-radius:0 0 20px 20px;z-index:100}
+
+.screen{
+  flex:1;background:var(--bg);overflow-y:auto;overflow-x:hidden;
+  position:relative;
+  scrollbar-width:thin;scrollbar-color:var(--light) var(--bg);
+}
+.device.mobile .screen{border-radius:34px;padding-top:40px}
+.device.tablet .screen{border-radius:16px}
+.device.desktop .screen{border-radius:6px}
+.screen::-webkit-scrollbar{width:4px}
+.screen::-webkit-scrollbar-track{background:var(--bg)}
+.screen::-webkit-scrollbar-thumb{background:var(--light);border-radius:4px}
+
+/* ── SCREENS (hide all, show active) ── */
+.s{display:none;flex-direction:column;min-height:100%;animation:fadeIn .3s ease}
+.s.show{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ══════════════════════════════
+   SCREEN 1: SPLASH / ONBOARDING
+══════════════════════════════ */
+#s-splash{
+  align-items:center;justify-content:center;text-align:center;
+  background:var(--bg);
+  background-image:radial-gradient(var(--light) 1px,transparent 1px);
+  background-size:32px 32px;padding:2rem;
+  position:relative;overflow:hidden;
+}
+.splash-glow{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(0,255,102,.08) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.splash-ring{
+  width:140px;height:140px;border-radius:50%;background:var(--surface);
+  box-shadow:var(--nd);display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.5rem;position:relative;
+}
+.splash-ring::before{content:'';position:absolute;inset:8px;border-radius:50%;border:3px solid var(--neon);border-left-color:transparent;border-bottom-color:transparent;transform:rotate(45deg);filter:drop-shadow(0 0 6px var(--neon))}
+.splash-inner{width:100px;height:100px;border-radius:50%;background:var(--bg);box-shadow:var(--ni);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--neon)}
+.splash-inner i{font-size:2rem;filter:drop-shadow(0 0 8px var(--neon))}
+.splash-inner span{font-size:.6rem;letter-spacing:2px;color:var(--muted);margin-top:3px}
+.splash h1{font-family:var(--fh);font-size:2rem;margin-bottom:.3rem}
+.splash p{color:var(--muted);font-size:.9rem;margin-bottom:2rem}
+.splash-dots{display:flex;gap:.5rem;justify-content:center;margin-bottom:2rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--light);transition:var(--r)}
+.dot.active{background:var(--neon);box-shadow:0 0 8px var(--neon);width:24px;border-radius:4px}
+.btn-neo{
+  display:inline-flex;align-items:center;justify-content:center;gap:.6rem;
+  padding:.9rem 2rem;border-radius:50px;font-family:var(--fb);font-weight:600;
+  font-size:.95rem;cursor:pointer;transition:var(--r);border:none;text-decoration:none;
+  position:relative;overflow:hidden;
+}
+.btn-p{background:var(--surface);color:var(--neon);box-shadow:var(--nd)}
+.btn-p::before{content:'';position:absolute;inset:3px;border-radius:50px;border:1px solid var(--neon);opacity:.4;transition:var(--r)}
+.btn-p:hover{background:var(--neon);color:var(--bg);box-shadow:var(--nd),var(--glow)}
+.btn-p:hover::before{opacity:0}
+.btn-p:active{box-shadow:var(--ni);transform:scale(.97)}
+.btn-g{background:var(--surface);color:var(--text);box-shadow:var(--ns)}
+.btn-g:hover{color:var(--neon)}
+.btn-g:active{box-shadow:var(--nis)}
+
+/* ══════════════════════════════
+   SCREEN 2: HOME DASHBOARD
+══════════════════════════════ */
+#s-home{padding-bottom:80px}
+
+/* Bottom nav */
+.bot-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:1px solid var(--light);
+  display:flex;z-index:500;
+  box-shadow:0 -8px 24px rgba(0,0,0,.4);
+}
+/* inside device only */
+.device .bot-nav{position:sticky;bottom:0;margin-top:auto}
+
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.7rem .3rem;cursor:pointer;transition:var(--r);gap:.2rem;border:none;background:none;color:var(--muted)}
+.nav-item i{font-size:1.1rem;transition:var(--r)}
+.nav-item span{font-size:.6rem;letter-spacing:.5px}
+.nav-item.active{color:var(--neon)}
+.nav-item.active i{filter:drop-shadow(0 0 6px var(--neon))}
+.nav-badge{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid var(--surface)}
+
+/* Home top bar */
+.home-bar{padding:1rem 1.2rem .5rem;display:flex;align-items:center;justify-content:space-between}
+.home-greeting h3{font-size:1.1rem;font-family:var(--fh)}
+.home-greeting p{font-size:.75rem;color:var(--muted)}
+.avatar-btn{width:42px;height:42px;border-radius:50%;background:var(--surface);box-shadow:var(--ns);border:none;cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--neon);font-size:1rem}
+
+/* Live banner */
+.live-banner{
+  margin:0 1.2rem .8rem;border-radius:20px;overflow:hidden;position:relative;
+  background:linear-gradient(135deg,#0a1a0f 0%,#0d2010 100%);
+  border:1px solid rgba(0,255,102,.2);
+  box-shadow:0 0 20px rgba(0,255,102,.1);
+  cursor:pointer;
+}
+.live-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(0,255,102,.08) 0%,transparent 60%)}
+.live-inner{padding:1.2rem;position:relative;z-index:1;display:flex;align-items:center;gap:1rem}
+.live-icon{width:52px;height:52px;border-radius:50%;background:rgba(0,255,102,.1);border:1px solid rgba(0,255,102,.3);display:flex;align-items:center;justify-content:center;color:var(--neon);font-size:1.2rem;flex-shrink:0;animation:pulse-b 2s infinite}
+@keyframes pulse-b{0%,100%{box-shadow:0 0 0 0 rgba(0,255,102,.4)}50%{box-shadow:0 0 0 8px rgba(0,255,102,0)}}
+.live-txt h4{font-size:1rem;margin-bottom:.2rem}
+.live-txt p{font-size:.75rem;color:var(--muted)}
+.live-pill{display:inline-flex;align-items:center;gap:.3rem;background:var(--red);color:#fff;padding:.2rem .7rem;border-radius:20px;font-size:.65rem;font-weight:700;margin-bottom:.3rem}
+.live-pill i{font-size:.5rem}
+
+/* Quick grid */
+.section-title{padding:.5rem 1.2rem .4rem;font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--fm)}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;padding:0 1.2rem .8rem}
+.q-card{
+  background:var(--surface);border-radius:18px;box-shadow:var(--ns);
+  padding:1rem;cursor:pointer;transition:var(--r);
+  display:flex;flex-direction:column;gap:.5rem;
+}
+.q-card:active{box-shadow:var(--nis);transform:scale(.97)}
+.q-icon{width:40px;height:40px;border-radius:12px;background:var(--bg);box-shadow:var(--nis);display:flex;align-items:center;justify-content:center;font-size:1rem;transition:var(--r)}
+.q-card:active .q-icon{color:var(--neon)}
+.q-card h4{font-size:.85rem;font-weight:600}
+.q-card p{font-size:.7rem;color:var(--muted);margin:0}
+
+/* Upcoming event strip */
+.event-strip{background:var(--surface);border-radius:18px;box-shadow:var(--ns);margin:0 1.2rem .8rem;overflow:hidden}
+.ev-row{display:flex;align-items:center;gap:.8rem;padding:.9rem 1rem;cursor:pointer;transition:var(--r);border-bottom:1px solid var(--light)}
+.ev-row:last-child{border-bottom:none}
+.ev-row:active{background:var(--bg)}
+.ev-date-box{width:44px;height:44px;border-radius:12px;background:var(--bg);box-shadow:var(--nis);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.ev-day{font-size:1.1rem;font-weight:700;color:var(--neon);line-height:1;text-shadow:var(--tglow)}
+.ev-mo{font-size:.55rem;color:var(--muted);text-transform:uppercase}
+.ev-info{flex:1}
+.ev-info h4{font-size:.85rem;margin-bottom:.15rem}
+.ev-info p{font-size:.7rem;color:var(--muted)}
+.ev-badge{font-size:.6rem;padding:.15rem .5rem;border-radius:10px;background:var(--neon-dim);color:var(--neon)}
+
+/* Today verse */
+.verse-card{
+  margin:0 1.2rem .8rem;background:var(--surface);border-radius:18px;
+  box-shadow:var(--ns);padding:1.2rem;position:relative;overflow:hidden;
+}
+.verse-card::before{content:'"';position:absolute;top:-10px;left:10px;font-size:5rem;color:var(--neon);opacity:.08;font-family:serif;line-height:1}
+.verse-ref{font-size:.65rem;color:var(--neon);letter-spacing:1px;margin-bottom:.5rem;font-family:var(--fm)}
+.verse-text{font-family:var(--fh);font-size:.9rem;line-height:1.6;color:var(--text)}
+
+/* Prayer counter widget */
+.prayer-widget{
+  margin:0 1.2rem 1rem;background:var(--bg);border-radius:18px;box-shadow:var(--ni);
+  padding:1rem;display:flex;align-items:center;gap:1rem;cursor:pointer;
+}
+.prayer-widget:active{box-shadow:var(--nd)}
+.pw-count{width:56px;height:56px;border-radius:50%;background:var(--surface);box-shadow:var(--ns);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.pw-num{font-size:1.2rem;font-weight:700;color:var(--neon);font-family:var(--fm);line-height:1}
+.pw-label{font-size:.5rem;color:var(--muted)}
+.pw-text h4{font-size:.85rem;margin-bottom:.2rem}
+.pw-text p{font-size:.72rem;color:var(--muted);margin:0}
+
+/* ══════════════════════════════
+   SCREEN 3: SERMON / MEDIA
+══════════════════════════════ */
+#s-media{padding-bottom:80px}
+.media-header{padding:1rem 1.2rem .5rem;display:flex;align-items:center;gap:1rem}
+.media-header h2{font-family:var(--fh);font-size:1.3rem;flex:1}
+
+/* Featured player */
+.feat-player{
+  margin:0 1.2rem .8rem;background:var(--surface);border-radius:24px;
+  box-shadow:var(--nd);overflow:hidden;
+}
+.player-img{
+  width:100%;aspect-ratio:16/9;object-fit:cover;position:relative;
+  background:linear-gradient(135deg,#0a1a0f,#0d1a22);
+  display:flex;align-items:center;justify-content:center;
+}
+.player-img-bg{width:100%;height:180px;object-fit:cover;opacity:.4;display:block}
+.player-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(32,35,42,.95) 100%);display:flex;align-items:flex-end;padding:1rem}
+.player-meta{flex:1}
+.p-series{font-size:.65rem;color:var(--neon);letter-spacing:1px;margin-bottom:.2rem}
+.p-title{font-family:var(--fh);font-size:1rem;line-height:1.3}
+.p-pastor{font-size:.7rem;color:var(--muted);margin-top:.2rem}
+.player-controls-wrap{padding:.8rem 1rem 1rem}
+.progress-track{height:6px;background:var(--bg);border-radius:3px;box-shadow:var(--nis);margin-bottom:.8rem;position:relative;cursor:pointer;overflow:hidden}
+.progress-fill{height:100%;width:38%;background:var(--neon);border-radius:3px;box-shadow:0 0 8px var(--neon)}
+.p-controls{display:flex;align-items:center;gap:.8rem}
+.p-ctrl-btn{width:40px;height:40px;border-radius:50%;background:var(--bg);box-shadow:var(--ns);border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--r)}
+.p-ctrl-btn:active{box-shadow:var(--nis)}
+.p-play{width:52px;height:52px;color:var(--neon)}
+.p-ctrl-btn.active{color:var(--neon)}
+.p-time{margin-left:auto;font-size:.7rem;color:var(--muted);font-family:var(--fm)}
+
+/* Tabs strip */
+.tab-strip{display:flex;margin:0 1.2rem .8rem;background:var(--bg);box-shadow:var(--ni);border-radius:50px;padding:.3rem}
+.t-btn{flex:1;background:none;border:none;color:var(--muted);padding:.55rem;border-radius:50px;font-family:var(--fb);font-size:.75rem;cursor:pointer;transition:var(--r);font-weight:500}
+.t-btn.active{background:var(--surface);color:var(--neon);box-shadow:var(--ns)}
+
+/* Sermon cards */
+.sermon-list{padding:0 1.2rem;display:flex;flex-direction:column;gap:.7rem}
+.sc-card{background:var(--surface);border-radius:16px;box-shadow:var(--ns);padding:.85rem;display:flex;gap:.8rem;cursor:pointer;transition:var(--r)}
+.sc-card:active{box-shadow:var(--nis)}
+.sc-thumb{width:70px;height:70px;border-radius:12px;object-fit:cover;background:var(--bg);box-shadow:var(--nis);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.sc-thumb img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.sc-info{flex:1}
+.sc-series{font-size:.6rem;color:var(--cyan);letter-spacing:1px;margin-bottom:.2rem}
+.sc-title{font-size:.85rem;font-weight:600;line-height:1.3;margin-bottom:.3rem}
+.sc-meta{font-size:.68rem;color:var(--muted)}
+.sc-duration{font-family:var(--fm);font-size:.65rem;color:var(--muted);background:var(--bg);padding:.15rem .5rem;border-radius:8px;box-shadow:var(--nis);display:inline-block}
+
+/* ══════════════════════════════
+   SCREEN 4: EVENTS
+══════════════════════════════ */
+#s-events{padding-bottom:80px}
+.events-header{padding:1rem 1.2rem .5rem}
+.events-header h2{font-family:var(--fh);font-size:1.3rem;margin-bottom:.8rem}
+
+/* Calendar mini */
+.cal-strip{margin:0 1.2rem .8rem;background:var(--surface);border-radius:20px;box-shadow:var(--nd);padding:1rem}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.cal-nav h4{font-size:.9rem}
+.cal-nav button{width:32px;height:32px;border-radius:50%;background:var(--bg);box-shadow:var(--nis);border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:.2rem;text-align:center}
+.cal-day-hdr{font-size:.6rem;color:var(--muted);padding:.2rem;font-family:var(--fm)}
+.cal-day{width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;transition:var(--r);position:relative}
+.cal-day:hover{background:var(--bg)}
+.cal-day.has-event::after{content:'';position:absolute;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--neon);box-shadow:0 0 4px var(--neon)}
+.cal-day.today{background:var(--neon-dim);color:var(--neon);font-weight:700}
+.cal-day.selected{background:var(--neon);color:var(--bg);font-weight:700;box-shadow:0 0 12px var(--neon)}
+.cal-day.other-month{color:var(--muted);opacity:.4}
+
+/* Event full cards */
+.event-cards{padding:0 1.2rem;display:flex;flex-direction:column;gap:.8rem}
+.event-card{background:var(--surface);border-radius:18px;box-shadow:var(--nd);overflow:hidden;cursor:pointer;transition:var(--r)}
+.event-card:active{box-shadow:var(--ni)}
+.ec-img{height:110px;background:linear-gradient(135deg,var(--bg),var(--surface2));position:relative;display:flex;align-items:center;justify-content:center}
+.ec-img i{font-size:2.5rem;color:var(--light);opacity:.5}
+.ec-date-chip{position:absolute;top:.7rem;left:.7rem;background:var(--neon);color:var(--bg);padding:.2rem .7rem;border-radius:20px;font-size:.65rem;font-weight:700}
+.ec-cat{position:absolute;top:.7rem;right:.7rem;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);color:var(--text);padding:.2rem .7rem;border-radius:20px;font-size:.6rem}
+.ec-body{padding:.9rem}
+.ec-body h4{font-size:.95rem;margin-bottom:.3rem}
+.ec-details{display:flex;flex-direction:column;gap:.25rem;margin-bottom:.8rem}
+.ec-detail{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.ec-detail i{color:var(--cyan);width:12px}
+.ec-reg-btn{width:100%;padding:.7rem;border-radius:12px;background:var(--bg);box-shadow:var(--ni);border:none;color:var(--neon);font-family:var(--fb);font-weight:600;font-size:.85rem;cursor:pointer;transition:var(--r)}
+.ec-reg-btn:active{box-shadow:var(--nd)}
+
+/* ══════════════════════════════
+   SCREEN 5: COMMUNITY / BLOG
+══════════════════════════════ */
+#s-community{padding-bottom:80px}
+.comm-header{padding:1rem 1.2rem .5rem;display:flex;align-items:center;justify-content:space-between}
+.comm-header h2{font-family:var(--fh);font-size:1.3rem}
+
+/* Category filter */
+.cat-scroll{display:flex;gap:.5rem;padding:0 1.2rem .8rem;overflow-x:auto;scrollbar-width:none}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-chip{flex-shrink:0;padding:.4rem 1rem;border-radius:50px;font-size:.72rem;cursor:pointer;transition:var(--r);border:none;font-family:var(--fb);font-weight:500}
+.cat-chip.all{background:var(--neon);color:var(--bg)}
+.cat-chip.news{background:var(--neon-dim);color:var(--neon)}
+.cat-chip.sermon{background:rgba(0,208,255,.15);color:var(--cyan)}
+.cat-chip.article{background:rgba(255,152,0,.15);color:var(--amber)}
+.cat-chip.testimony{background:rgba(255,107,157,.15);color:var(--pink)}
+
+/* Featured blog */
+.feat-blog{margin:0 1.2rem .8rem;border-radius:20px;overflow:hidden;background:var(--surface);box-shadow:var(--nd);cursor:pointer;transition:var(--r)}
+.feat-blog:active{box-shadow:var(--ni)}
+.fb-img{height:160px;background:linear-gradient(135deg,#0a1a0f,#0d1a22);position:relative;display:flex;align-items:flex-end}
+.fb-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5}
+.fb-overlay{padding:.8rem;position:relative;z-index:1;width:100%}
+.fb-badge{display:inline-block;padding:.2rem .6rem;border-radius:10px;font-size:.6rem;font-weight:700;margin-bottom:.3rem;background:var(--neon);color:var(--bg)}
+.fb-title{font-family:var(--fh);font-size:1.05rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.fb-body{padding:.9rem}
+.fb-excerpt{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.7rem}
+.fb-meta{display:flex;align-items:center;gap:.5rem;font-size:.68rem;color:var(--muted)}
+.fb-avatar{width:22px;height:22px;border-radius:50%;background:var(--neon-dim);color:var(--neon);display:flex;align-items:center;justify-content:center;font-size:.55rem}
+
+/* Blog grid */
+.blog-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;padding:0 1.2rem}
+.bc-card{background:var(--surface);border-radius:16px;box-shadow:var(--ns);overflow:hidden;cursor:pointer;transition:var(--r)}
+.bc-card:active{box-shadow:var(--nis)}
+.bc-img{height:80px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--light)}
+.bc-img i{font-size:1.5rem}
+.bc-body{padding:.6rem}
+.bc-cat{font-size:.55rem;margin-bottom:.2rem;font-weight:700;letter-spacing:.5px}
+.bc-title{font-size:.75rem;font-weight:600;line-height:1.3;margin-bottom:.3rem}
+.bc-read{font-size:.6rem;color:var(--muted)}
+
+/* ══════════════════════════════
+   SCREEN 6: MEMBER PROFILE
+══════════════════════════════ */
+#s-profile{padding-bottom:80px}
+.profile-hero{
+  background:linear-gradient(to bottom,var(--surface) 0%,var(--bg) 100%);
+  padding:1.5rem 1.2rem 1rem;text-align:center;position:relative;
+}
+.profile-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(0,255,102,.06) 0%,transparent 60%);pointer-events:none}
+.profile-avatar{
+  width:80px;height:80px;border-radius:50%;margin:0 auto .8rem;
+  background:var(--surface2);box-shadow:0 0 0 3px var(--neon),var(--nd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;color:var(--neon);position:relative;
+}
+.profile-avatar .status-dot{position:absolute;bottom:4px;right:4px;width:12px;height:12px;border-radius:50%;background:var(--neon);box-shadow:0 0 6px var(--neon);border:2px solid var(--surface)}
+.profile-name{font-family:var(--fh);font-size:1.3rem;margin-bottom:.2rem}
+.profile-role{font-size:.72rem;color:var(--neon);letter-spacing:1px;background:var(--neon-dim);padding:.2rem .8rem;border-radius:20px;display:inline-block}
+.profile-stats{display:flex;gap:1rem;justify-content:center;margin:.8rem 0 0;padding-bottom:.8rem;border-bottom:1px solid var(--light)}
+.pst{text-align:center}
+.pst-num{font-family:var(--fm);font-size:1.2rem;color:var(--neon);font-weight:700;line-height:1}
+.pst-label{font-size:.6rem;color:var(--muted)}
+
+/* Profile menu list */
+.profile-menu{padding:.5rem 1.2rem}
+.pm-section{margin-bottom:.8rem}
+.pm-label{font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;padding-left:.5rem;font-family:var(--fm)}
+.pm-list{background:var(--surface);border-radius:18px;box-shadow:var(--ns);overflow:hidden}
+.pm-item{display:flex;align-items:center;gap:.8rem;padding:.9rem 1rem;cursor:pointer;transition:var(--r);border-bottom:1px solid var(--light)}
+.pm-item:last-child{border-bottom:none}
+.pm-item:active{background:var(--bg)}
+.pm-icon{width:36px;height:36px;border-radius:10px;background:var(--bg);box-shadow:var(--nis);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.pm-text{flex:1}
+.pm-text h4{font-size:.85rem;margin-bottom:.1rem}
+.pm-text p{font-size:.68rem;color:var(--muted);margin:0}
+.pm-arrow{color:var(--muted);font-size:.7rem}
+.pm-item:hover .pm-arrow{color:var(--neon)}
+
+/* ══════════════════════════════
+   SCREEN 7: PRAYER / CONNECT
+══════════════════════════════ */
+#s-prayer{padding-bottom:80px}
+.prayer-header{padding:1rem 1.2rem .5rem}
+.prayer-header h2{font-family:var(--fh);font-size:1.3rem;margin-bottom:.2rem}
+.prayer-header p{font-size:.78rem;color:var(--muted)}
+
+/* Live counter ring */
+.prayer-counter{
+  margin:0 1.2rem .8rem;background:var(--surface);border-radius:20px;
+  box-shadow:var(--nd);padding:1.2rem;display:flex;align-items:center;gap:1.2rem;
+}
+.counter-ring{
+  width:70px;height:70px;border-radius:50%;background:var(--bg);box-shadow:var(--ni);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+}
+.counter-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;border:2px solid var(--neon);border-right-color:transparent;animation:spin 3s linear infinite;filter:drop-shadow(0 0 4px var(--neon))}
+@keyframes spin{to{transform:rotate(360deg)}}
+.counter-num{font-family:var(--fm);font-size:1.3rem;color:var(--neon);font-weight:700;line-height:1}
+.counter-sub{font-size:.5rem;color:var(--muted)}
+.counter-text h4{font-size:.9rem;margin-bottom:.2rem}
+.counter-text p{font-size:.72rem;color:var(--muted);margin:0}
+
+/* Prayer categories */
+.prayer-cats{display:flex;gap:.5rem;padding:0 1.2rem .6rem;overflow-x:auto;scrollbar-width:none}
+.prayer-cats::-webkit-scrollbar{display:none}
+.pr-cat{flex-shrink:0;padding:.4rem .9rem;border-radius:50px;font-size:.7rem;background:var(--surface);box-shadow:var(--ns);color:var(--muted);cursor:pointer;border:none;font-family:var(--fb);transition:var(--r)}
+.pr-cat.active{background:var(--neon-dim);color:var(--neon);box-shadow:var(--ni)}
+
+/* Prayer form card */
+.prayer-form-card{margin:0 1.2rem .8rem;background:var(--surface);border-radius:20px;box-shadow:var(--nd);padding:1.2rem}
+.pf-label{font-size:.72rem;color:var(--muted);margin-bottom:.4rem;display:block;padding-left:.4rem}
+.pf-input{
+  width:100%;background:var(--bg);box-shadow:var(--ni);border:none;border-radius:14px;
+  padding:.85rem 1rem;color:var(--text);font-family:var(--fb);font-size:.85rem;
+  margin-bottom:1rem;transition:var(--r);
+}
+.pf-input:focus{outline:none;box-shadow:var(--ni),0 0 0 2px var(--neon-dim)}
+.pf-input::placeholder{color:#555861}
+.pf-select{appearance:none;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238A8F98' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 1rem center;background-size:1em}
+.pf-input option{background:var(--bg);color:var(--text)}
+.public-toggle{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.public-toggle span{font-size:.78rem;color:var(--muted)}
+.toggle-sw{width:44px;height:24px;border-radius:12px;background:var(--bg);box-shadow:var(--ni);border:none;cursor:pointer;position:relative;transition:var(--r);flex-shrink:0}
+.toggle-sw::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:var(--muted);top:3px;left:3px;transition:var(--r);box-shadow:2px 2px 4px rgba(0,0,0,.3)}
+.toggle-sw.on{background:var(--neon-dim)}
+.toggle-sw.on::after{left:23px;background:var(--neon);box-shadow:0 0 6px var(--neon)}
+
+/* Recent prayers */
+.recent-prayers{padding:0 1.2rem;display:flex;flex-direction:column;gap:.6rem}
+.rp-card{background:var(--surface);border-radius:16px;box-shadow:var(--ns);padding:.9rem}
+.rp-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem}
+.rp-avatar{width:28px;height:28px;border-radius:50%;background:var(--bg);box-shadow:var(--nis);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);flex-shrink:0}
+.rp-name{font-size:.75rem;font-weight:600;flex:1}
+.rp-time{font-size:.6rem;color:var(--muted)}
+.rp-category{font-size:.6rem;padding:.1rem .5rem;border-radius:8px;background:var(--neon-dim);color:var(--neon)}
+.rp-text{font-size:.78rem;color:var(--muted);line-height:1.5}
+.rp-actions{display:flex;gap:.5rem;margin-top:.6rem}
+.rp-act-btn{background:var(--bg);box-shadow:var(--nis);border:none;color:var(--muted);padding:.3rem .7rem;border-radius:8px;font-size:.65rem;cursor:pointer;transition:var(--r);font-family:var(--fb);display:flex;align-items:center;gap:.3rem}
+.rp-act-btn:hover{color:var(--neon)}
+.rp-act-btn.prayed{color:var(--neon)}
+
+/* ══════════════════════════════
+   SCREEN 8: REGISTRATION MODAL
+══════════════════════════════ */
+.modal-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  z-index:900;display:none;align-items:flex-end;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn .25s ease}
+.modal-sheet{
+  background:var(--surface);border-radius:28px 28px 0 0;
+  width:100%;max-width:500px;max-height:90vh;overflow-y:auto;
+  padding:1.5rem;box-shadow:0 -8px 40px rgba(0,0,0,.5);
+}
+.modal-handle{width:40px;height:4px;background:var(--light);border-radius:2px;margin:0 auto 1.2rem}
+.modal-title{font-family:var(--fh);font-size:1.2rem;margin-bottom:.3rem}
+.modal-subtitle{font-size:.78rem;color:var(--muted);margin-bottom:1.2rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.7rem}
+.form-field{margin-bottom:.7rem}
+.field-label{font-size:.7rem;color:var(--muted);margin-bottom:.3rem;display:block;padding-left:.4rem}
+.field-input{width:100%;background:var(--bg);box-shadow:var(--ni);border:none;border-radius:12px;padding:.8rem 1rem;color:var(--text);font-family:var(--fb);font-size:.85rem;transition:var(--r)}
+.field-input:focus{outline:none;box-shadow:var(--ni),0 0 0 2px var(--neon-dim)}
+.field-input::placeholder{color:#555861}
+.success-state{text-align:center;padding:2rem 1rem;display:none}
+.success-state.show{display:block;animation:fadeIn .4s ease}
+.success-circle{width:70px;height:70px;border-radius:50%;background:var(--neon-dim);border:2px solid var(--neon);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem;font-size:1.5rem;color:var(--neon)}
+.success-state h3{font-family:var(--fh);margin-bottom:.4rem}
+.success-state p{font-size:.8rem;color:var(--muted)}
+
+/* ══════════════════════════════
+   SCREEN 9: ADMIN DASHBOARD
+══════════════════════════════ */
+#s-admin{padding-bottom:0}
+.admin-top{background:var(--surface);padding:.8rem 1.2rem;display:flex;align-items:center;gap:.8rem;box-shadow:0 4px 12px rgba(0,0,0,.3);position:sticky;top:0;z-index:100}
+.admin-top h3{font-size:.9rem;flex:1}
+.admin-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;padding:.8rem 1.2rem}
+.as-card{background:var(--surface);border-radius:16px;box-shadow:var(--ns);padding:.9rem;position:relative;overflow:hidden}
+.as-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;border-radius:2px}
+.as-card.green::before{background:var(--neon);box-shadow:0 0 8px var(--neon)}
+.as-card.cyan::before{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.as-card.amber::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.as-card.pink::before{background:var(--pink);box-shadow:0 0 8px var(--pink)}
+.as-num{font-family:var(--fm);font-size:1.6rem;font-weight:700;line-height:1;margin-bottom:.2rem}
+.as-card.green .as-num{color:var(--neon)}
+.as-card.cyan .as-num{color:var(--cyan)}
+.as-card.amber .as-num{color:var(--amber)}
+.as-card.pink .as-num{color:var(--pink)}
+.as-label{font-size:.68rem;color:var(--muted)}
+.as-trend{font-size:.6rem;margin-top:.3rem}
+.as-trend.up{color:var(--neon)}
+
+/* Admin recent list */
+.admin-section{padding:.5rem 1.2rem}
+.admin-section h4{font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.6rem;font-family:var(--fm)}
+.admin-row{background:var(--surface);border-radius:14px;box-shadow:var(--ns);padding:.8rem 1rem;margin-bottom:.5rem;display:flex;align-items:center;gap:.7rem;cursor:pointer;transition:var(--r)}
+.admin-row:active{box-shadow:var(--nis)}
+.ar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ar-dot.green{background:var(--neon);box-shadow:0 0 6px var(--neon)}
+.ar-dot.amber{background:var(--amber)}
+.ar-dot.cyan{background:var(--cyan)}
+.ar-text{flex:1}
+.ar-text h5{font-size:.8rem;margin-bottom:.1rem}
+.ar-text p{font-size:.65rem;color:var(--muted);margin:0}
+.ar-action{font-size:.65rem;color:var(--muted);padding:.2rem .6rem;background:var(--bg);border-radius:8px;box-shadow:var(--nis)}
+.admin-row:hover .ar-action{color:var(--neon)}
+
+/* ══════════════════════════════
+   SHARED COMPONENTS
+══════════════════════════════ */
+.section-divider{height:1px;background:var(--light);margin:.8rem 1.2rem}
+.tag-pill{display:inline-block;padding:.15rem .5rem;border-radius:8px;font-size:.6rem;font-weight:600}
+.tag-neon{background:var(--neon-dim);color:var(--neon)}
+.tag-cyan{background:rgba(0,208,255,.15);color:var(--cyan)}
+.tag-amber{background:rgba(255,152,0,.15);color:var(--amber)}
+.tag-pink{background:rgba(255,107,157,.15);color:var(--pink)}
+
+/* Notification banner */
+.notif-banner{
+  margin:0 1.2rem .8rem;background:rgba(0,208,255,.08);border:1px solid rgba(0,208,255,.2);
+  border-radius:14px;padding:.8rem 1rem;display:flex;align-items:center;gap:.7rem;
+}
+.notif-icon{color:var(--cyan);font-size:.9rem;flex-shrink:0}
+.notif-text{flex:1}
+.notif-text p{font-size:.75rem;margin:0;color:var(--text)}
+.notif-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem;padding:.2rem}
+
+/* Empty state */
+.empty-state{text-align:center;padding:2rem 1.5rem;color:var(--muted)}
+.empty-state i{font-size:2.5rem;opacity:.3;margin-bottom:.8rem;display:block}
+.empty-state p{font-size:.8rem}
+
+/* Floating action button */
+.fab{
+  position:fixed;bottom:90px;right:1.2rem;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--neon);color:var(--bg);
+  box-shadow:var(--nd),var(--glow);
+  border:none;font-size:1.2rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--r);z-index:400;
+}
+.fab:active{transform:scale(.92);box-shadow:var(--ni)}
+.device .fab{position:sticky;bottom:90px;margin-left:auto;margin-right:1.2rem;margin-bottom:-60px}
+
+/* Auth screen */
+#s-auth{align-items:center;justify-content:center;padding:2rem 1.5rem}
+.auth-logo{text-align:center;margin-bottom:2rem}
+.auth-logo .splash-ring{margin-bottom:1rem;width:100px;height:100px}
+.auth-logo .splash-inner{width:72px;height:72px}
+.auth-logo h2{font-family:var(--fh);font-size:1.5rem}
+.auth-logo p{font-size:.78rem;color:var(--muted)}
+.auth-card{width:100%;max-width:360px;background:var(--surface);border-radius:24px;box-shadow:var(--nd);padding:1.5rem}
+.auth-tabs{display:flex;background:var(--bg);box-shadow:var(--ni);border-radius:50px;padding:.3rem;margin-bottom:1.2rem}
+.auth-tab{flex:1;padding:.55rem;border-radius:50px;border:none;background:none;color:var(--muted);font-family:var(--fb);font-size:.78rem;cursor:pointer;transition:var(--r)}
+.auth-tab.active{background:var(--surface);color:var(--neon);box-shadow:var(--ns)}
+.google-btn{width:100%;padding:.8rem;border-radius:12px;background:var(--bg);box-shadow:var(--ni);border:none;color:var(--text);font-family:var(--fb);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:.6rem;transition:var(--r)}
+.google-btn:active{box-shadow:var(--nd)}
+.google-icon{width:16px;height:16px;background:linear-gradient(45deg,#4285F4 25%,#EA4335 25% 50%,#FBBC05 50% 75%,#34A853 75%);border-radius:2px}
+.or-divider{text-align:center;margin:.8rem 0;position:relative}
+.or-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--light)}
+.or-divider span{background:var(--surface);padding:0 .7rem;font-size:.7rem;color:var(--muted);position:relative}
+.password-wrap{position:relative}
+.pw-toggle{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem}
+.strength-bar{height:3px;border-radius:2px;background:var(--light);margin-top:.3rem;overflow:hidden}
+.strength-fill{height:100%;border-radius:2px;transition:all .3s;width:0}
+
+/* ══════════════════════════════
+   FEATURE SHOWCASE PANELS
+══════════════════════════════ */
+#s-features{padding:1rem 1.2rem 80px}
+.features-header{font-family:var(--fh);font-size:1.3rem;margin-bottom:.3rem}
+.features-sub{font-size:.78rem;color:var(--muted);margin-bottom:1.2rem}
+.feat-section{margin-bottom:1.5rem}
+.feat-section-title{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:.7rem;font-family:var(--fm)}
+.feat-section-title::after{content:'';flex:1;height:1px;background:var(--light)}
+.feat-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+.feat-tag{padding:.4rem .9rem;border-radius:50px;font-size:.72rem;cursor:default;background:var(--surface);box-shadow:var(--ns);color:var(--text)}
+.feat-tag i{margin-right:.3rem}
+.feat-tag.new{border:1px solid var(--neon);color:var(--neon)}
+.feat-tag.auth{border:1px solid var(--cyan);color:var(--cyan)}
+.feat-tag.data{border:1px solid var(--amber);color:var(--amber)}
+.tech-stack{background:var(--surface);border-radius:18px;box-shadow:var(--nd);overflow:hidden}
+.ts-row{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;border-bottom:1px solid var(--light)}
+.ts-row:last-child{border-bottom:none}
+.ts-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.ts-text{flex:1}
+.ts-text h5{font-size:.82rem;margin-bottom:.1rem}
+.ts-text p{font-size:.65rem;color:var(--muted);margin:0}
+.ts-pill{font-size:.6rem;padding:.15rem .5rem;border-radius:8px;font-family:var(--fm)}
+</style>
+</head>
+<body>
+
+<!-- ══ PROTOTYPE CHROME ══ -->
+<div class="proto-bar">
+  <span class="proto-title">⚡ TLCC PROTOTYPE v6.0</span>
+  <div class="proto-screens">
+    <button class="proto-btn active" data-screen="s-splash" onclick="showScreen('s-splash')">🚀 Splash</button>
+    <button class="proto-btn" data-screen="s-home" onclick="showScreen('s-home')">🏠 Home</button>
+    <button class="proto-btn" data-screen="s-media" onclick="showScreen('s-media')">🎵 Sermon</button>
+    <button class="proto-btn" data-screen="s-events" onclick="showScreen('s-events')">📅 Events</button>
+    <button class="proto-btn" data-screen="s-community" onclick="showScreen('s-community')">📰 Blog</button>
+    <button class="proto-btn" data-screen="s-prayer" onclick="showScreen('s-prayer')">🙏 Prayer</button>
+    <button class="proto-btn" data-screen="s-profile" onclick="showScreen('s-profile')">👤 Profile</button>
+    <button class="proto-btn" data-screen="s-auth" onclick="showScreen('s-auth')">🔐 Auth</button>
+    <button class="proto-btn" data-screen="s-admin" onclick="showScreen('s-admin')">⚙️ Admin</button>
+    <button class="proto-btn" data-screen="s-features" onclick="showScreen('s-features')">✨ Features</button>
+  </div>
+  <div class="proto-device">
+    <button class="device-btn active" aria-label="มือถือ (Mobile)" onclick="setDevice('mobile',this)">📱</button>
+    <button class="device-btn" aria-label="แท็บเล็ต (Tablet)" onclick="setDevice('tablet',this)">📟</button>
+    <button class="device-btn" aria-label="คอมพิวเตอร์ (Desktop)" onclick="setDevice('desktop',this)">🖥️</button>
+    <span class="proto-badge">Interactive</span>
+  </div>
+</div>
+
+<!-- ══ VIEWPORT ══ -->
+<div class="viewport">
+  <div class="device mobile" id="device">
+    <div class="screen" id="screen">
+
+      <!-- ── SCREEN 1: SPLASH ── -->
+      <div class="s show" id="s-splash">
+        <div class="splash" id="splash-wrap" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;background:var(--bg);background-image:radial-gradient(var(--light) 1px,transparent 1px);background-size:32px 32px;position:relative;overflow:hidden">
+          <div class="splash-glow"></div>
+          <div class="splash-ring">
+            <div class="splash-inner">
+              <i class="fa-solid fa-power-off"></i>
+              <span>ONLINE</span>
+            </div>
+          </div>
+          <h1 class="splash h1" style="font-family:var(--fh);font-size:1.8rem;margin-bottom:.3rem">คริสตจักร<span style="color:var(--neon);text-shadow:var(--tglow)">ชีวิตสุขสันต์</span></h1>
+          <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6">True Life In Christ Church<br>เชื่อมต่อ · เติบโต · รับใช้</p>
+          <div class="splash-dots" id="onboard-dots">
+            <div class="dot active" id="d0"></div>
+            <div class="dot" id="d1"></div>
+            <div class="dot" id="d2"></div>
+          </div>
+          <div id="onboard-text" style="min-height:60px;margin-bottom:1.5rem;transition:.3s">
+            <p style="font-size:.9rem;color:var(--text)">ยินดีต้อนรับสู่ TLCC</p>
+            <p style="font-size:.78rem;color:var(--muted)">แอปสำหรับสมาชิกคริสตจักร<br>ครบครันในที่เดียว</p>
+          </div>
+          <button class="btn-neo btn-p" style="width:100%;max-width:280px" onclick="nextOnboard()">
+            <span id="onboard-btn-text">ถัดไป</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+          <button class="btn-neo btn-g" style="width:100%;max-width:280px;margin-top:.7rem;font-size:.8rem" onclick="showScreen('s-home')">
+            ข้ามไปหน้าหลัก
+          </button>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 2: HOME ── -->
+      <div class="s" id="s-home">
+        <div class="home-bar">
+          <div class="home-greeting">
+            <h3>สวัสดีตอนเช้า 🙏</h3>
+            <p>วันอาทิตย์ที่ 15 มีนาคม 2026</p>
+          </div>
+          <button class="avatar-btn" onclick="showScreen('s-profile')">
+            <span style="font-family:var(--fm);font-size:.75rem;font-weight:700">สม</span>
+          </button>
+        </div>
+
+        <!-- Live Banner -->
+        <div class="live-banner" onclick="showScreen('s-media')">
+          <div class="live-bg"></div>
+          <div class="live-inner">
+            <div class="live-icon"><i class="fa-solid fa-signal-stream"></i></div>
+            <div class="live-txt">
+              <div class="live-pill"><i class="fa-solid fa-circle"></i> LIVE NOW</div>
+              <h4>นมัสการวันอาทิตย์</h4>
+              <p>เริ่มแล้ว · 248 คนกำลังดู</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Verse -->
+        <div class="verse-card">
+          <div class="verse-ref">ยอห์น 3:16</div>
+          <div class="verse-text">"เพราะว่าพระเจ้าทรงรักโลก จนถึงกับได้ประทานพระบุตรองค์เดียว เพื่อทุกคนที่วางใจในพระบุตรนั้นจะไม่พินาศ"</div>
+        </div>
+
+        <!-- Quick Access -->
+        <div class="section-title">เมนูหลัก</div>
+        <div class="quick-grid">
+          <div class="q-card" onclick="showScreen('s-media')">
+            <div class="q-icon" style="color:var(--neon)"><i class="fa-solid fa-play-circle"></i></div>
+            <h4>คำเทศนา</h4>
+            <p>ล่าสุด: 08 มี.ค.</p>
+          </div>
+          <div class="q-card" onclick="showScreen('s-events')">
+            <div class="q-icon" style="color:var(--cyan)"><i class="fa-solid fa-calendar-days"></i></div>
+            <h4>กิจกรรม</h4>
+            <p>3 กิจกรรมใกล้มา</p>
+          </div>
+          <div class="q-card" onclick="showScreen('s-prayer')">
+            <div class="q-icon" style="color:var(--pink)"><i class="fa-solid fa-hands-praying"></i></div>
+            <h4>อธิษฐาน</h4>
+            <p>147 คำอธิษฐาน</p>
+          </div>
+          <div class="q-card" onclick="showScreen('s-community')">
+            <div class="q-icon" style="color:var(--amber)"><i class="fa-solid fa-newspaper"></i></div>
+            <h4>ข่าวสาร</h4>
+            <p>4 บทความใหม่</p>
+          </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="section-title">กิจกรรมใกล้มา</div>
+        <div class="event-strip">
+          <div class="ev-row" onclick="showScreen('s-events')">
+            <div class="ev-date-box"><span class="ev-day">15</span><span class="ev-mo">MAR</span></div>
+            <div class="ev-info">
+              <h4>สัมมนาครอบครัว</h4>
+              <p>13:00 – 16:00 น. · ห้องประชุมใหญ่</p>
+            </div>
+            <span class="ev-badge">HOT</span>
+          </div>
+          <div class="ev-row" onclick="showScreen('s-events')">
+            <div class="ev-date-box"><span class="ev-day" style="color:var(--text);text-shadow:none">22</span><span class="ev-mo">MAR</span></div>
+            <div class="ev-info">
+              <h4>ค่ายอนุชน One Day</h4>
+              <p>09:00 – 17:00 น. · ค่ายลูกเสือ</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prayer counter widget -->
+        <div class="prayer-widget" onclick="showScreen('s-prayer')">
+          <div class="pw-count">
+            <span class="pw-num">147</span>
+            <span class="pw-label">คำขอ</span>
+          </div>
+          <div class="pw-text">
+            <h4>ห้องอธิษฐาน Live 🙏</h4>
+            <p>ส่งคำขออธิษฐานและอธิษฐานเพื่อกัน</p>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="color:var(--muted);font-size:.8rem"></i>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="bot-nav">
+          <button class="nav-item active" onclick="showScreen('s-home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
+          <button class="nav-item" onclick="showScreen('s-media')"><i class="fa-solid fa-headphones"></i><span>Sermon</span></button>
+          <button class="nav-item" onclick="showScreen('s-events')"><i class="fa-solid fa-calendar"></i><span>กิจกรรม</span></button>
+          <button class="nav-item" onclick="showScreen('s-community')"><i class="fa-solid fa-newspaper"></i><span>Blog</span></button>
+          <button class="nav-item" style="position:relative" onclick="showScreen('s-prayer')"><i class="fa-solid fa-hands-praying"></i><div class="nav-badge"></div><span>อธิษฐาน</span></button>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 3: MEDIA ── -->
+      <div class="s" id="s-media">
+        <div class="media-header">
+          <button class="btn-neo btn-g" aria-label="กลับหน้าหลัก" style="width:36px;height:36px;padding:0;border-radius:50%" onclick="showScreen('s-home')"><i class="fa-solid fa-arrow-left" aria-hidden="true" style="font-size:.8rem"></i></button>
+          <h2>Media Hub</h2>
+          <button class="btn-neo btn-g" style="width:36px;height:36px;padding:0;border-radius:50%"><i class="fa-solid fa-magnifying-glass" style="font-size:.8rem"></i></button>
+        </div>
+
+        <div class="feat-player">
+          <div class="player-img" style="position:relative;height:180px;background:linear-gradient(135deg,#0a1a0f,#0d1a22);display:flex;align-items:flex-end">
+            <img class="player-img-bg" src="https://images.unsplash.com/photo-1438283173091-5dbf5c5a3206?auto=format&fit=crop&q=80&w=800" alt="">
+            <div class="player-overlay">
+              <div class="player-meta">
+                <p class="p-series">SERIES: ศรัทธาที่เคลื่อนภูเขา</p>
+                <p class="p-title">ก้าวข้ามความกลัวด้วยความเชื่อ</p>
+                <p class="p-pastor">ศจ.สมชาย รักสันติ · 08 มี.ค. 2026</p>
+              </div>
+            </div>
+          </div>
+          <div class="player-controls-wrap">
+            <div class="progress-track">
+              <div class="progress-fill"></div>
+            </div>
+            <div class="p-controls">
+              <button class="p-ctrl-btn"><i class="fa-solid fa-backward-step"></i></button>
+              <button class="p-ctrl-btn p-play"><i class="fa-solid fa-pause"></i></button>
+              <button class="p-ctrl-btn"><i class="fa-solid fa-forward-step"></i></button>
+              <button class="p-ctrl-btn active"><i class="fa-solid fa-repeat"></i></button>
+              <span class="p-time">14:23 / 45:12</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-strip">
+          <button class="t-btn active" onclick="switchTab(this,'sermon-tab')">คำเทศนา</button>
+          <button class="t-btn" onclick="switchTab(this,'podcast-tab')">Podcast</button>
+          <button class="t-btn" onclick="switchTab(this,'worship-tab')">นมัสการ</button>
+        </div>
+
+        <div class="sermon-list" id="sermon-tab">
+          <div class="sc-card">
+            <div class="sc-thumb"><img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&q=80&w=200" alt=""></div>
+            <div class="sc-info">
+              <p class="sc-series">ศรัทธาที่เคลื่อนภูเขา</p>
+              <p class="sc-title">รากฐานชีวิตที่มั่นคง</p>
+              <p class="sc-meta">01 มี.ค. 2026 · ศจ.สมชาย <span class="sc-duration">38:55</span></p>
+            </div>
+          </div>
+          <div class="sc-card">
+            <div class="sc-thumb"><img src="https://images.unsplash.com/photo-1470116892389-0de5d9770b2c?auto=format&fit=crop&q=80&w=200" alt=""></div>
+            <div class="sc-info">
+              <p class="sc-series">ศรัทธาที่เคลื่อนภูเขา</p>
+              <p class="sc-title">พระคุณที่เพียงพอ</p>
+              <p class="sc-meta">22 ก.พ. 2026 · อ.ใจดี <span class="sc-duration">41:30</span></p>
+            </div>
+          </div>
+          <div class="sc-card">
+            <div class="sc-thumb" style="background:var(--bg);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-video-slash" style="font-size:1.2rem"></i></div>
+            <div class="sc-info">
+              <p class="sc-series">ชีวิตคริสเตียน</p>
+              <p class="sc-title">พลังแห่งการอธิษฐาน</p>
+              <p class="sc-meta">15 ก.พ. 2026 · ศจ.สมชาย <span class="sc-duration">52:08</span></p>
+            </div>
+          </div>
+        </div>
+        <div class="sermon-list" id="podcast-tab" style="display:none">
+          <div class="sc-card"><div class="sc-thumb" style="background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--cyan)"><i class="fa-solid fa-podcast" style="font-size:1.5rem"></i></div><div class="sc-info"><p class="sc-series" style="color:var(--cyan)">TLCC PODCAST EP.12</p><p class="sc-title">ชีวิตคริสเตียนในยุคดิจิทัล</p><p class="sc-meta">10 มี.ค. 2026 <span class="sc-duration">28:44</span></p></div></div>
+          <div class="sc-card"><div class="sc-thumb" style="background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--cyan)"><i class="fa-solid fa-podcast" style="font-size:1.5rem"></i></div><div class="sc-info"><p class="sc-series" style="color:var(--cyan)">TLCC PODCAST EP.11</p><p class="sc-title">ครอบครัวที่ตั้งอยู่บนพระเจ้า</p><p class="sc-meta">03 มี.ค. 2026 <span class="sc-duration">35:20</span></p></div></div>
+        </div>
+        <div class="sermon-list" id="worship-tab" style="display:none">
+          <div class="sc-card"><div class="sc-thumb" style="background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--pink)"><i class="fa-solid fa-music" style="font-size:1.5rem"></i></div><div class="sc-info"><p class="sc-series" style="color:var(--pink)">WORSHIP NIGHT 2026</p><p class="sc-title">นมัสการสดุดี — ชุดที่ 1</p><p class="sc-meta">28 ก.พ. 2026 <span class="sc-duration">1:12:33</span></p></div></div>
+        </div>
+
+        <div class="bot-nav">
+          <button class="nav-item" onclick="showScreen('s-home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
+          <button class="nav-item active" onclick="showScreen('s-media')"><i class="fa-solid fa-headphones"></i><span>Sermon</span></button>
+          <button class="nav-item" onclick="showScreen('s-events')"><i class="fa-solid fa-calendar"></i><span>กิจกรรม</span></button>
+          <button class="nav-item" onclick="showScreen('s-community')"><i class="fa-solid fa-newspaper"></i><span>Blog</span></button>
+          <button class="nav-item" onclick="showScreen('s-prayer')"><i class="fa-solid fa-hands-praying"></i><span>อธิษฐาน</span></button>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 4: EVENTS ── -->
+      <div class="s" id="s-events">
+        <div class="events-header">
+          <h2>กิจกรรม</h2>
+          <div class="cal-strip">
+            <div class="cal-nav">
+              <h4>มีนาคม 2026</h4>
+              <div style="display:flex;gap:.4rem">
+                <button><i class="fa-solid fa-chevron-left" style="font-size:.65rem"></i></button>
+                <button><i class="fa-solid fa-chevron-right" style="font-size:.65rem"></i></button>
+              </div>
+            </div>
+            <div class="cal-days">
+              <div class="cal-day-hdr">อา</div><div class="cal-day-hdr">จ</div><div class="cal-day-hdr">อ</div><div class="cal-day-hdr">พ</div><div class="cal-day-hdr">พฤ</div><div class="cal-day-hdr">ศ</div><div class="cal-day-hdr">ส</div>
+              <div class="cal-day other-month">23</div><div class="cal-day other-month">24</div><div class="cal-day other-month">25</div><div class="cal-day other-month">26</div><div class="cal-day other-month">27</div><div class="cal-day other-month">28</div><div class="cal-day">1</div>
+              <div class="cal-day">2</div><div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div><div class="cal-day">6</div><div class="cal-day">7</div><div class="cal-day">8</div>
+              <div class="cal-day">9</div><div class="cal-day today">10</div><div class="cal-day">11</div><div class="cal-day">12</div><div class="cal-day">13</div><div class="cal-day">14</div><div class="cal-day has-event selected" onclick="this.classList.toggle('selected')">15</div>
+              <div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day">18</div><div class="cal-day">19</div><div class="cal-day">20</div><div class="cal-day">21</div><div class="cal-day has-event" onclick="this.classList.toggle('selected')">22</div>
+              <div class="cal-day">23</div><div class="cal-day">24</div><div class="cal-day">25</div><div class="cal-day">26</div><div class="cal-day">27</div><div class="cal-day">28</div><div class="cal-day">29</div>
+              <div class="cal-day has-event" onclick="this.classList.toggle('selected')">30</div><div class="cal-day">31</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">กิจกรรมที่กำลังมา</div>
+        <div class="event-cards">
+          <div class="event-card" id="ev-1">
+            <div class="ec-img" style="background:linear-gradient(135deg,#0a1a10,#0a1a1a)">
+              <i class="fa-solid fa-people-group"></i>
+              <span class="ec-date-chip">15 MAR 2026</span>
+              <span class="ec-cat">Family</span>
+            </div>
+            <div class="ec-body">
+              <h4>สัมมนาครอบครัวคริสเตียน</h4>
+              <div class="ec-details">
+                <div class="ec-detail"><i class="fa-regular fa-clock"></i>13:00 – 16:00 น.</div>
+                <div class="ec-detail"><i class="fa-solid fa-location-dot"></i>ห้องประชุมใหญ่</div>
+                <div class="ec-detail"><i class="fa-solid fa-users"></i>รับสมัคร 50 คน · เหลือ 12 ที่นั่ง</div>
+              </div>
+              <button class="ec-reg-btn" onclick="openModal('สัมมนาครอบครัวคริสเตียน','15 มี.ค. 2026')">
+                <i class="fa-solid fa-user-plus"></i> ลงทะเบียน
+              </button>
+            </div>
+          </div>
+          <div class="event-card">
+            <div class="ec-img" style="background:linear-gradient(135deg,#0a0a1a,#0a1520)">
+              <i class="fa-solid fa-campground"></i>
+              <span class="ec-date-chip" style="background:var(--cyan)">22 MAR 2026</span>
+              <span class="ec-cat">Youth</span>
+            </div>
+            <div class="ec-body">
+              <h4>ค่ายอนุชน One Day 2026</h4>
+              <div class="ec-details">
+                <div class="ec-detail"><i class="fa-regular fa-clock"></i>09:00 – 17:00 น.</div>
+                <div class="ec-detail"><i class="fa-solid fa-location-dot"></i>ค่ายลูกเสือจังหวัดกาฬสินธุ์</div>
+                <div class="ec-detail"><i class="fa-solid fa-users"></i>อายุ 15–25 ปี · เปิดรับ</div>
+              </div>
+              <button class="ec-reg-btn" style="color:var(--cyan)" onclick="openModal('ค่ายอนุชน One Day 2026','22 มี.ค. 2026')">
+                <i class="fa-solid fa-user-plus"></i> ลงทะเบียน
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bot-nav">
+          <button class="nav-item" onclick="showScreen('s-home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
+          <button class="nav-item" onclick="showScreen('s-media')"><i class="fa-solid fa-headphones"></i><span>Sermon</span></button>
+          <button class="nav-item active" onclick="showScreen('s-events')"><i class="fa-solid fa-calendar"></i><span>กิจกรรม</span></button>
+          <button class="nav-item" onclick="showScreen('s-community')"><i class="fa-solid fa-newspaper"></i><span>Blog</span></button>
+          <button class="nav-item" onclick="showScreen('s-prayer')"><i class="fa-solid fa-hands-praying"></i><span>อธิษฐาน</span></button>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 5: COMMUNITY ── -->
+      <div class="s" id="s-community">
+        <div class="comm-header">
+          <h2>ข่าวสาร & Blog</h2>
+          <button class="btn-neo btn-g" style="width:36px;height:36px;padding:0;border-radius:50%"><i class="fa-solid fa-magnifying-glass" style="font-size:.8rem"></i></button>
+        </div>
+        <div class="cat-scroll">
+          <button class="cat-chip all">ทั้งหมด</button>
+          <button class="cat-chip news">ข่าวสาร</button>
+          <button class="cat-chip sermon">เทศนา</button>
+          <button class="cat-chip article">บทความ</button>
+          <button class="cat-chip testimony">ประจักษ์พยาน</button>
+        </div>
+
+        <div class="notif-banner">
+          <i class="fa-solid fa-bell notif-icon"></i>
+          <div class="notif-text"><p>บทความใหม่ 4 ชิ้นรอคุณอยู่!</p></div>
+          <button class="notif-close" onclick="this.closest('.notif-banner').remove()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="feat-blog">
+          <div class="fb-img">
+            <img src="https://images.unsplash.com/photo-1504052434569-70ad5836ab65?auto=format&fit=crop&q=80&w=800" alt="">
+            <div class="fb-overlay">
+              <span class="fb-badge">ประจักษ์พยาน</span>
+              <p class="fb-title">พระเจ้าทรงดีเสมอ เรื่องราวที่เปลี่ยนชีวิต</p>
+            </div>
+          </div>
+          <div class="fb-body">
+            <p class="fb-excerpt">ตั้งแต่ฉันมาร่วมคริสตจักรนี้เมื่อ 3 ปีก่อน ชีวิตเปลี่ยนแปลงไปอย่างสิ้นเชิง...</p>
+            <div class="fb-meta">
+              <div class="fb-avatar"><i class="fa-solid fa-user" style="font-size:.5rem"></i></div>
+              <span>นางสาวมาลี</span><span>·</span><span>10 มี.ค. 2026</span><span>·</span><span>3 นาที</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="blog-grid">
+          <div class="bc-card">
+            <div class="bc-img" style="background:linear-gradient(135deg,#0a1520,#0d1a22)"><i class="fa-solid fa-newspaper"></i></div>
+            <div class="bc-body">
+              <p class="bc-cat" style="color:var(--cyan)">ข่าวสาร</p>
+              <p class="bc-title">ค่าย Youth 2026 ประสบความสำเร็จ</p>
+              <p class="bc-read">2 นาที · 05 มี.ค.</p>
+            </div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-img" style="background:linear-gradient(135deg,#1a0a0a,#200d0d)"><i class="fa-solid fa-book-open"></i></div>
+            <div class="bc-body">
+              <p class="bc-cat" style="color:var(--amber)">บทความ</p>
+              <p class="bc-title">5 วิธีอธิษฐานที่มีประสิทธิภาพ</p>
+              <p class="bc-read">5 นาที · 01 มี.ค.</p>
+            </div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-img" style="background:linear-gradient(135deg,#0a0a1a,#0d0d22)"><i class="fa-solid fa-cross"></i></div>
+            <div class="bc-body">
+              <p class="bc-cat" style="color:var(--pink)">เทศนา</p>
+              <p class="bc-title">พระคริสต์ทรงฟื้นคืนพระชนม์</p>
+              <p class="bc-read">8 นาที · 28 ก.พ.</p>
+            </div>
+          </div>
+          <div class="bc-card">
+            <div class="bc-img"><i class="fa-solid fa-hands-holding-heart" style="font-size:1.5rem"></i></div>
+            <div class="bc-body">
+              <p class="bc-cat" style="color:var(--neon)">ประจักษ์พยาน</p>
+              <p class="bc-title">พระเจ้าทรงรักษาโรคฉัน</p>
+              <p class="bc-read">4 นาที · 25 ก.พ.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bot-nav">
+          <button class="nav-item" onclick="showScreen('s-home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
+          <button class="nav-item" onclick="showScreen('s-media')"><i class="fa-solid fa-headphones"></i><span>Sermon</span></button>
+          <button class="nav-item" onclick="showScreen('s-events')"><i class="fa-solid fa-calendar"></i><span>กิจกรรม</span></button>
+          <button class="nav-item active" onclick="showScreen('s-community')"><i class="fa-solid fa-newspaper"></i><span>Blog</span></button>
+          <button class="nav-item" onclick="showScreen('s-prayer')"><i class="fa-solid fa-hands-praying"></i><span>อธิษฐาน</span></button>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 6: PRAYER ── -->
+      <div class="s" id="s-prayer">
+        <div class="prayer-header">
+          <h2>ห้องอธิษฐาน</h2>
+          <p>ส่งคำขอและอธิษฐานเพื่อพี่น้อง</p>
+        </div>
+
+        <div class="prayer-counter">
+          <div class="counter-ring">
+            <span class="counter-num" id="pray-count">147</span>
+            <span class="counter-sub">คำขอ</span>
+          </div>
+          <div class="counter-text">
+            <h4>Live Prayer Wall 🙏</h4>
+            <p>อัปเดตแบบ Realtime<br>เชื่อมต่อผ่าน Supabase</p>
+          </div>
+        </div>
+
+        <div class="prayer-cats">
+          <button class="pr-cat active">ทั้งหมด</button>
+          <button class="pr-cat" onclick="activateCat(this)">สุขภาพ</button>
+          <button class="pr-cat" onclick="activateCat(this)">ครอบครัว</button>
+          <button class="pr-cat" onclick="activateCat(this)">การเงิน</button>
+          <button class="pr-cat" onclick="activateCat(this)">การงาน</button>
+        </div>
+
+        <div class="prayer-form-card">
+          <p style="font-size:.8rem;font-weight:600;margin-bottom:.8rem">✉️ ส่งคำขออธิษฐาน</p>
+          <label class="pf-label">หมวดหมู่</label>
+          <select class="pf-input pf-select">
+            <option>สุขภาพ / การรักษา</option>
+            <option>ครอบครัว</option>
+            <option>การเงิน / การงาน</option>
+            <option>อื่นๆ</option>
+          </select>
+          <label class="pf-label">รายละเอียด *</label>
+          <textarea class="pf-input" rows="3" placeholder="ขออธิษฐานเพื่อ..."></textarea>
+          <div class="public-toggle">
+            <span>แสดงแบบสาธารณะ (ไม่ระบุชื่อ)</span>
+            <button class="toggle-sw on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <button class="btn-neo btn-p" style="width:100%" onclick="submitPrayer(this)">
+            <i class="fa-solid fa-paper-plane"></i> ส่งคำขอ
+          </button>
+        </div>
+
+        <div class="section-title">คำขออธิษฐานล่าสุด</div>
+        <div class="recent-prayers">
+          <div class="rp-card">
+            <div class="rp-top">
+              <div class="rp-avatar"><i class="fa-solid fa-user"></i></div>
+              <span class="rp-name">นามแฝง A</span>
+              <span class="rp-time">2 นาทีที่แล้ว</span>
+              <span class="rp-category">สุขภาพ</span>
+            </div>
+            <p class="rp-text">ขออธิษฐานเพื่อพ่อที่ป่วยอยู่ในโรงพยาบาล ขอให้พระเจ้าทรงรักษาให้หายโดยเร็ว</p>
+            <div class="rp-actions">
+              <button class="rp-act-btn prayed" onclick="this.classList.toggle('prayed')"><i class="fa-solid fa-hands-praying"></i> อธิษฐานแล้ว (12)</button>
+              <button class="rp-act-btn"><i class="fa-solid fa-heart"></i> (5)</button>
+            </div>
+          </div>
+          <div class="rp-card">
+            <div class="rp-top">
+              <div class="rp-avatar"><i class="fa-solid fa-user"></i></div>
+              <span class="rp-name">นามแฝง B</span>
+              <span class="rp-time">15 นาทีที่แล้ว</span>
+              <span class="rp-category" style="background:rgba(255,152,0,.15);color:var(--amber)">การงาน</span>
+            </div>
+            <p class="rp-text">ขออธิษฐานเพื่อโอกาสในการทำงาน กำลังมองหางานใหม่ ขอพระเจ้าทรงนำทาง</p>
+            <div class="rp-actions">
+              <button class="rp-act-btn" onclick="this.classList.toggle('prayed')"><i class="fa-solid fa-hands-praying"></i> อธิษฐานแล้ว (8)</button>
+              <button class="rp-act-btn"><i class="fa-solid fa-heart"></i> (3)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bot-nav">
+          <button class="nav-item" onclick="showScreen('s-home')"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></button>
+          <button class="nav-item" onclick="showScreen('s-media')"><i class="fa-solid fa-headphones"></i><span>Sermon</span></button>
+          <button class="nav-item" onclick="showScreen('s-events')"><i class="fa-solid fa-calendar"></i><span>กิจกรรม</span></button>
+          <button class="nav-item" onclick="showScreen('s-community')"><i class="fa-solid fa-newspaper"></i><span>Blog</span></button>
+          <button class="nav-item active" onclick="showScreen('s-prayer')"><i class="fa-solid fa-hands-praying"></i><span>อธิษฐาน</span></button>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 7: PROFILE ── -->
+      <div class="s" id="s-profile">
+        <div class="profile-hero">
+          <button style="position:absolute;top:1rem;left:1rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem" onclick="showScreen('s-home')"><i class="fa-solid fa-arrow-left"></i></button>
+          <div class="profile-avatar">
+            <span style="font-size:1.5rem">🙏</span>
+            <div class="status-dot"></div>
+          </div>
+          <h2 class="profile-name">สมชาย ใจดี</h2>
+          <span class="profile-role">สมาชิก</span>
+          <div class="profile-stats">
+            <div class="pst"><div class="pst-num">3</div><div class="pst-label">ปีที่เข้าร่วม</div></div>
+            <div class="pst"><div class="pst-num">12</div><div class="pst-label">กิจกรรม</div></div>
+            <div class="pst"><div class="pst-num">47</div><div class="pst-label">คำอธิษฐาน</div></div>
+          </div>
+        </div>
+
+        <div class="profile-menu">
+          <div class="pm-section">
+            <div class="pm-label">บัญชีของฉัน</div>
+            <div class="pm-list">
+              <div class="pm-item"><div class="pm-icon" style="color:var(--neon)"><i class="fa-solid fa-user-edit"></i></div><div class="pm-text"><h4>แก้ไขโปรไฟล์</h4><p>ชื่อ รูปภาพ เบอร์โทร</p></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+              <div class="pm-item"><div class="pm-icon" style="color:var(--cyan)"><i class="fa-solid fa-bell"></i></div><div class="pm-text"><h4>การแจ้งเตือน</h4><p>Push notification ต่างๆ</p></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+            </div>
+          </div>
+          <div class="pm-section">
+            <div class="pm-label">กิจกรรมของฉัน</div>
+            <div class="pm-list">
+              <div class="pm-item" onclick="showScreen('s-events')"><div class="pm-icon" style="color:var(--amber)"><i class="fa-solid fa-calendar-check"></i></div><div class="pm-text"><h4>กิจกรรมที่ลงทะเบียน</h4><p>2 กิจกรรมที่กำลังจะมา</p></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+              <div class="pm-item" onclick="showScreen('s-prayer')"><div class="pm-icon" style="color:var(--pink)"><i class="fa-solid fa-hands-praying"></i></div><div class="pm-text"><h4>คำขออธิษฐาน</h4><p>47 คำขอที่ส่งไปแล้ว</p></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+            </div>
+          </div>
+          <div class="pm-section">
+            <div class="pm-label">อื่นๆ</div>
+            <div class="pm-list">
+              <div class="pm-item"><div class="pm-icon" style="color:var(--neon)"><i class="fa-solid fa-wallet"></i></div><div class="pm-text"><h4>ถวายทรัพย์</h4><p>ช่องทางการถวาย</p></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+              <div class="pm-item" onclick="showScreen('s-admin')"><div class="pm-icon" style="color:var(--cyan)"><i class="fa-solid fa-shield-halved"></i></div><div class="pm-text"><h4>Admin Panel</h4><p>สำหรับ Admin เท่านั้น</p></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+              <div class="pm-item" onclick="confirmLogout()"><div class="pm-icon" style="color:var(--red)"><i class="fa-solid fa-sign-out-alt"></i></div><div class="pm-text"><h4>ออกจากระบบ</h4></div><i class="fa-solid fa-chevron-right pm-arrow"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 8: AUTH ── -->
+      <div class="s" id="s-auth">
+        <div class="auth-logo">
+          <div class="splash-ring" style="width:90px;height:90px">
+            <div class="splash-inner" style="width:65px;height:65px">
+              <i class="fa-solid fa-bolt" style="font-size:1.5rem"></i>
+              <span>TLCC</span>
+            </div>
+          </div>
+          <h2>ยินดีต้อนรับ</h2>
+          <p>เข้าสู่ระบบหรือสร้างบัญชีใหม่</p>
+        </div>
+        <div class="auth-card">
+          <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab(this,'login-form')">เข้าสู่ระบบ</button>
+            <button class="auth-tab" onclick="switchAuthTab(this,'reg-form')">สมัครสมาชิก</button>
+          </div>
+
+          <div id="login-form">
+            <div class="form-field">
+              <label class="field-label">อีเมล</label>
+              <input type="email" class="field-input" placeholder="your@email.com">
+            </div>
+            <div class="form-field">
+              <label class="field-label">รหัสผ่าน</label>
+              <div class="password-wrap">
+                <input type="password" class="field-input" placeholder="••••••••" id="pw1">
+                <button class="pw-toggle" onclick="togglePw('pw1',this)"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <button class="btn-neo btn-p" style="width:100%;margin-top:.3rem" onclick="doLogin(this)">
+              <i class="fa-solid fa-bolt"></i> เข้าสู่ระบบ
+            </button>
+            <div class="or-divider"><span>หรือ</span></div>
+            <button class="google-btn">
+              <div class="google-icon"></div>
+              เข้าสู่ระบบด้วย Google
+            </button>
+          </div>
+
+          <div id="reg-form" style="display:none">
+            <div class="form-field">
+              <label class="field-label">ชื่อ-นามสกุล</label>
+              <input type="text" class="field-input" placeholder="สมชาย ใจดี">
+            </div>
+            <div class="form-field">
+              <label class="field-label">อีเมล</label>
+              <input type="email" class="field-input" placeholder="your@email.com">
+            </div>
+            <div class="form-field">
+              <label class="field-label">รหัสผ่าน (อย่างน้อย 8 ตัว)</label>
+              <div class="password-wrap">
+                <input type="password" class="field-input" placeholder="••••••••" id="pw2" oninput="checkStrength(this)">
+                <button class="pw-toggle" onclick="togglePw('pw2',this)"><i class="fa-solid fa-eye"></i></button>
+              </div>
+              <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+            </div>
+            <button class="btn-neo btn-p" style="width:100%;margin-top:.3rem" onclick="doRegister(this)">
+              <i class="fa-solid fa-user-plus"></i> สมัครสมาชิก
+            </button>
+          </div>
+        </div>
+        <button class="btn-neo btn-g" style="margin-top:1rem;font-size:.8rem" onclick="showScreen('s-home')">
+          ← กลับหน้าหลัก
+        </button>
+      </div>
+
+      <!-- ── SCREEN 9: ADMIN ── -->
+      <div class="s" id="s-admin">
+        <div class="admin-top">
+          <button style="background:none;border:none;color:var(--muted);cursor:pointer" onclick="showScreen('s-profile')"><i class="fa-solid fa-arrow-left"></i></button>
+          <h3>⚙️ Admin Dashboard</h3>
+          <span class="tag-pill tag-neon">ADMIN</span>
+        </div>
+        <div class="admin-stat-row">
+          <div class="as-card green"><div class="as-num">24</div><div class="as-label">Blog Posts</div><div class="as-trend up">↑ +3 สัปดาห์นี้</div></div>
+          <div class="as-card cyan"><div class="as-num">147</div><div class="as-label">คำอธิษฐาน</div><div class="as-trend up">↑ Live</div></div>
+          <div class="as-card amber"><div class="as-num">89</div><div class="as-label">ลงทะเบียนกิจกรรม</div><div class="as-trend up">↑ +12 สัปดาห์นี้</div></div>
+          <div class="as-card pink"><div class="as-num">5</div><div class="as-label">รอ Approve</div><div class="as-trend" style="color:var(--red)">⚠ ต้องตรวจ</div></div>
+        </div>
+
+        <div class="admin-section">
+          <h4>จัดการบทความ</h4>
+          <div class="admin-row"><div class="ar-dot green"></div><div class="ar-text"><h5>พระเจ้าทรงดีเสมอ</h5><p>เผยแพร่แล้ว · 10 มี.ค.</p></div><span class="ar-action">แก้ไข</span></div>
+          <div class="admin-row"><div class="ar-dot amber"></div><div class="ar-text"><h5>บทความใหม่: Easter 2026</h5><p>ฉบับร่าง · รอเผยแพร่</p></div><span class="ar-action">เผยแพร่</span></div>
+          <button class="btn-neo btn-p" style="width:100%;margin-top:.5rem;padding:.7rem"><i class="fa-solid fa-plus"></i> เขียนบทความใหม่</button>
+        </div>
+
+        <div class="admin-section">
+          <h4>ลงทะเบียนล่าสุด</h4>
+          <div class="admin-row"><div class="ar-dot cyan"></div><div class="ar-text"><h5>นายสมศักดิ์ — สัมมนาครอบครัว</h5><p>2 คน · 14 มี.ค. 2026</p></div><span class="ar-action">ดูข้อมูล</span></div>
+          <div class="admin-row"><div class="ar-dot cyan"></div><div class="ar-text"><h5>น.ส.มาลี — ค่ายอนุชน</h5><p>1 คน · 13 มี.ค. 2026</p></div><span class="ar-action">ดูข้อมูล</span></div>
+        </div>
+
+        <div class="admin-section" style="padding-bottom:1rem">
+          <h4>Testimonials รอ Approve</h4>
+          <div class="admin-row"><div class="ar-dot amber"></div><div class="ar-text"><h5>"พระเจ้าทรงเปลี่ยนชีวิตฉัน..."</h5><p>นามแฝง · ส่งเมื่อ 12 มี.ค.</p></div><span class="ar-action" style="color:var(--neon)">✅ Approve</span></div>
+        </div>
+      </div>
+
+      <!-- ── SCREEN 10: FEATURES OVERVIEW ── -->
+      <div class="s" id="s-features">
+        <div class="features-header">✨ Feature Map</div>
+        <p class="features-sub">โครงสร้างฟีเจอร์ทั้งหมดของ TLCC App v6.0</p>
+
+        <div class="feat-section">
+          <div class="feat-section-title"><i class="fa-solid fa-mobile-alt"></i> Public (ไม่ต้อง Login)</div>
+          <div class="feat-tags">
+            <span class="feat-tag"><i class="fa-solid fa-house"></i> Home Dashboard</span>
+            <span class="feat-tag"><i class="fa-solid fa-headphones"></i> ดูคำเทศนา</span>
+            <span class="feat-tag"><i class="fa-solid fa-calendar"></i> ปฏิทินกิจกรรม</span>
+            <span class="feat-tag"><i class="fa-solid fa-newspaper"></i> Blog / ข่าวสาร</span>
+            <span class="feat-tag"><i class="fa-solid fa-map-pin"></i> แผนที่ Leaflet</span>
+            <span class="feat-tag"><i class="fa-solid fa-book-bible"></i> ข้อพระคัมภีร์ประจำวัน</span>
+            <span class="feat-tag"><i class="fa-solid fa-signal-stream"></i> Live Stream</span>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-title"><i class="fa-solid fa-user-lock"></i> Member (ต้อง Login)</div>
+          <div class="feat-tags">
+            <span class="feat-tag new"><i class="fa-solid fa-user-plus"></i> สมัครสมาชิก</span>
+            <span class="feat-tag new"><i class="fa-solid fa-clipboard-check"></i> ลงทะเบียนกิจกรรม</span>
+            <span class="feat-tag new"><i class="fa-solid fa-hands-praying"></i> ส่งคำอธิษฐาน</span>
+            <span class="feat-tag new"><i class="fa-solid fa-star"></i> แบ่งปัน Testimonial</span>
+            <span class="feat-tag new"><i class="fa-solid fa-bell"></i> Push Notification</span>
+            <span class="feat-tag new"><i class="fa-solid fa-wallet"></i> ถวายทรัพย์ออนไลน์</span>
+            <span class="feat-tag new"><i class="fa-solid fa-bookmark"></i> บันทึก Sermon</span>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-title"><i class="fa-solid fa-shield-halved"></i> Admin Only</div>
+          <div class="feat-tags">
+            <span class="feat-tag auth"><i class="fa-solid fa-pen-nib"></i> Blog CMS</span>
+            <span class="feat-tag auth"><i class="fa-solid fa-chart-bar"></i> Dashboard Stats</span>
+            <span class="feat-tag auth"><i class="fa-solid fa-check-circle"></i> Approve Testimonials</span>
+            <span class="feat-tag auth"><i class="fa-solid fa-table"></i> จัดการลงทะเบียน</span>
+            <span class="feat-tag auth"><i class="fa-solid fa-users-gear"></i> จัดการสมาชิก</span>
+            <span class="feat-tag auth"><i class="fa-solid fa-bullhorn"></i> ส่ง Broadcast</span>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-title"><i class="fa-solid fa-server"></i> Tech Stack</div>
+          <div class="tech-stack">
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(62,207,142,.1);color:#3ECF8E"><i class="fa-solid fa-database"></i></div><div class="ts-text"><h5>Supabase</h5><p>Auth + PostgreSQL + Storage + Realtime</p></div><span class="ts-pill tag-neon">Core</span></div>
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(0,208,255,.1);color:var(--cyan)"><i class="fa-solid fa-map"></i></div><div class="ts-text"><h5>Leaflet.js</h5><p>Dark theme map + custom SVG pins</p></div><span class="ts-pill tag-cyan">Map</span></div>
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(255,152,0,.1);color:var(--amber)"><i class="fa-brands fa-google"></i></div><div class="ts-text"><h5>Google Sheets API</h5><p>Event registration backup</p></div><span class="ts-pill tag-amber">Backup</span></div>
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(255,107,157,.1);color:var(--pink)"><i class="fa-solid fa-mobile-screen"></i></div><div class="ts-text"><h5>PWA Ready</h5><p>manifest.json + service worker</p></div><span class="ts-pill tag-pink">Mobile</span></div>
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(0,255,102,.1);color:var(--neon)"><i class="fa-solid fa-code"></i></div><div class="ts-text"><h5>Vanilla HTML/CSS/JS</h5><p>Zero build tools — deploy anywhere</p></div><span class="ts-pill tag-neon">Simple</span></div>
+          </div>
+        </div>
+
+        <div class="feat-section">
+          <div class="feat-section-title"><i class="fa-solid fa-sitemap"></i> App Pages</div>
+          <div class="tech-stack">
+            <div class="ts-row"><div class="ts-icon" style="background:var(--neon-dim);color:var(--neon)"><i class="fa-solid fa-file-code"></i></div><div class="ts-text"><h5>index.html</h5><p>Public website + member features</p></div><span class="ts-pill tag-neon">Public</span></div>
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(0,208,255,.1);color:var(--cyan)"><i class="fa-solid fa-file-shield"></i></div><div class="ts-text"><h5>admin.html</h5><p>Protected CMS dashboard</p></div><span class="ts-pill tag-cyan">Admin</span></div>
+            <div class="ts-row"><div class="ts-icon" style="background:rgba(255,152,0,.1);color:var(--amber)"><i class="fa-solid fa-file-image"></i></div><div class="ts-text"><h5>manifest.json</h5><p>PWA install config</p></div><span class="ts-pill tag-amber">PWA</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REGISTRATION MODAL -->
+      <div class="modal-overlay" id="reg-modal" onclick="closeModalOutside(event)">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <div id="reg-form-wrap">
+            <h3 class="modal-title" id="modal-event-name">ลงทะเบียน</h3>
+            <p class="modal-subtitle" id="modal-event-date">กิจกรรม</p>
+            <div class="form-row">
+              <div class="form-field" style="margin:0">
+                <label class="field-label" for="reg-firstname">ชื่อ *</label>
+                <input class="field-input" id="reg-firstname" name="firstname" autocomplete="given-name" placeholder="ชื่อ">
+              </div>
+              <div class="form-field" style="margin:0">
+                <label class="field-label" for="reg-lastname">นามสกุล *</label>
+                <input class="field-input" id="reg-lastname" name="lastname" autocomplete="family-name" placeholder="นามสกุล">
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="field-label" for="reg-email">อีเมล *</label>
+              <input type="email" class="field-input" id="reg-email" name="email" autocomplete="email" placeholder="your@email.com">
+            </div>
+            <div class="form-field">
+              <label class="field-label" for="reg-phone">เบอร์โทร *</label>
+              <input type="tel" class="field-input" id="reg-phone" name="phone" autocomplete="tel" placeholder="0812345678">
+            </div>
+            <div class="form-row">
+              <div class="form-field" style="margin:0">
+                <label class="field-label" for="reg-count">จำนวนคน</label>
+                <input type="number" class="field-input" id="reg-count" value="1" min="1" max="10">
+              </div>
+              <div class="form-field" style="margin:0">
+                <label class="field-label" for="reg-note">หมายเหตุ</label>
+                <input class="field-input" id="reg-note" placeholder="ไม่บังคับ">
+              </div>
+            </div>
+            <button class="btn-neo btn-p" style="width:100%;margin-top:.8rem" onclick="submitReg(this)">
+              <i class="fa-solid fa-check"></i> ยืนยันการลงทะเบียน
+            </button>
+            <button class="btn-neo btn-g" style="width:100%;margin-top:.5rem;font-size:.85rem" onclick="closeModal()">ยกเลิก</button>
+          </div>
+          <div class="success-state" id="reg-success">
+            <div class="success-circle"><i class="fa-solid fa-check"></i></div>
+            <h3>ลงทะเบียนสำเร็จ! 🎉</h3>
+            <p>ระบบได้บันทึกข้อมูลของคุณแล้ว<br>เราจะส่งยืนยันทางอีเมล</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screen -->
+  </div><!-- /device -->
+</div><!-- /viewport -->
+
+<script>
+// ── STATE ──
+let onboardStep = 0;
+let lastFocusedElement = null;
+const onboardData = [
+  { title:'ยินดีต้อนรับสู่ TLCC', sub:'แอปสำหรับสมาชิกคริสตจักร<br>ครบครันในที่เดียว' },
+  { title:'ติดตามกิจกรรม', sub:'ลงทะเบียนกิจกรรม ตรวจสอบตาราง<br>รับการแจ้งเตือนทันที' },
+  { title:'อธิษฐานร่วมกัน', sub:'ส่งคำขออธิษฐาน อธิษฐานเพื่อพี่น้อง<br>เชื่อมต่อแบบ Realtime' }
+];
+
+// ── SCREEN SWITCH — FIX BUG-05: sync bottom nav ──
+function showScreen(id) {
+  document.querySelectorAll('.s').forEach(s => s.classList.remove('show'));
+  const target = document.getElementById(id);
+  if (target) {
+    target.classList.add('show');
+    const screen = document.getElementById('screen');
+    if (screen) screen.scrollTop = 0;
+  }
+
+  // Sync proto bar — FIX BP-05: use data-screen instead of index
+  document.querySelectorAll('.proto-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === id);
+  });
+
+  // FIX BUG-05: Sync ALL bottom nav items across every screen
+  const navMap = { 's-home':0, 's-media':1, 's-events':2, 's-community':3, 's-prayer':4 };
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  if (navMap[id] !== undefined) {
+    document.querySelectorAll('.nav-item').forEach((item, i) => {
+      if (i % 5 === navMap[id]) item.classList.add('active');
+    });
+  }
+}
+
+// ── DEVICE — FIX BUG-01: pass element instead of global event ──
+function setDevice(type, clickedBtn) {
+  const device = document.getElementById('device');
+  device.className = 'device ' + type;
+  document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+  if (clickedBtn) clickedBtn.classList.add('active');
+}
+
+// ── ONBOARDING — FIX BP-04: animated text transition ──
+function nextOnboard() {
+  onboardStep++;
+  if (onboardStep >= onboardData.length) { showScreen('s-auth'); return; }
+
+  const d = onboardData[onboardStep];
+  const textEl = document.getElementById('onboard-text');
+
+  // Fade out → update → fade in
+  textEl.style.transition = 'opacity .2s ease, transform .2s ease';
+  textEl.style.opacity = '0';
+  textEl.style.transform = 'translateY(6px)';
+
+  setTimeout(() => {
+    textEl.innerHTML =
+      `<p style="font-size:.9rem;color:var(--text)">${d.title}</p>
+       <p style="font-size:.78rem;color:var(--muted)">${d.sub}</p>`;
+    textEl.style.opacity = '1';
+    textEl.style.transform = 'translateY(0)';
+  }, 200);
+
+  document.querySelectorAll('.dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === onboardStep);
+  });
+  if (onboardStep === onboardData.length - 1) {
+    document.getElementById('onboard-btn-text').textContent = 'เริ่มใช้งาน';
+  }
+}
+
+// ── MEDIA TABS — FIX BUG-06: reset style instead of setting flex ──
+function switchTab(btn, targetId) {
+  document.querySelectorAll('#s-media .t-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['sermon-tab','podcast-tab','worship-tab'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === targetId) {
+      el.style.display = '';   // reset to CSS class default (flex-column)
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ── AUTH TABS ──
+function switchAuthTab(btn, targetId) {
+  document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('login-form').style.display = targetId === 'login-form' ? 'block' : 'none';
+  document.getElementById('reg-form').style.display   = targetId === 'reg-form'   ? 'block' : 'none';
+}
+
+// ── PRAYER CATEGORY ──
+function activateCat(btn) {
+  document.querySelectorAll('.pr-cat').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── MODAL — FIX BUG-02 + BUG-03 + BP-03 ──
+function openModal(eventName, eventDate) {
+  lastFocusedElement = document.activeElement;  // store for focus return
+  document.getElementById('modal-event-name').textContent = 'ลงทะเบียน: ' + eventName;
+  document.getElementById('modal-event-date').textContent = '📅 ' + eventDate;
+  document.getElementById('reg-form-wrap').style.display = 'block';
+  document.getElementById('reg-success').classList.remove('show');
+
+  // FIX BUG-02: reset submit button state before opening
+  const submitBtn = document.querySelector('#reg-form-wrap .btn-p');
+  if (submitBtn) {
+    submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> ยืนยันการลงทะเบียน';
+    submitBtn.disabled = false;
+  }
+
+  document.getElementById('reg-modal').classList.add('open');
+
+  // FIX BP-03: focus first input after open
+  requestAnimationFrame(() => {
+    const firstInput = document.querySelector('#reg-form-wrap input:not([disabled])');
+    if (firstInput) firstInput.focus();
+  });
+}
+
+function closeModal() {
+  document.getElementById('reg-modal').classList.remove('open');
+  // FIX BP-03: return focus to trigger
+  if (lastFocusedElement) lastFocusedElement.focus();
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('reg-modal')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── FORM SUBMISSIONS — FIX BUG-02: reset button state ──
+function submitReg(btn) {
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+  btn.disabled = true;
+  setTimeout(() => {
+    document.getElementById('reg-form-wrap').style.display = 'none';
+    document.getElementById('reg-success').classList.add('show');
+    setTimeout(() => {
+      closeModal();
+      // Reset button AFTER modal closes so next open is clean
+      btn.innerHTML = originalHTML;
+      btn.disabled = false;
+    }, 2500);
+  }, 1200);
+}
+
+// FIX BUG-07: clear textarea after submit
+function submitPrayer(btn) {
+  const orig = btn.innerHTML;
+  const textarea = btn.closest('.prayer-form-card')?.querySelector('textarea');
+
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> ส่งแล้ว! 🙏';
+    btn.style.background = 'var(--neon)';
+    btn.style.color = 'var(--bg)';
+
+    // FIX BUG-07: clear form
+    if (textarea) textarea.value = '';
+
+    const countEl = document.getElementById('pray-count');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
+
+    setTimeout(() => {
+      btn.innerHTML = orig;
+      btn.disabled = false;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 2000);
+  }, 1000);
+}
+
+// ── AUTH MOCK — FIX BUG-04: reset button before navigate ──
+function doLogin(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังตรวจสอบ...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+    showScreen('s-home');
+  }, 1200);
+}
+
+function doRegister(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังสร้างบัญชี...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+    showScreen('s-home');
+  }, 1500);
+}
+
+// FIX BUG-09: confirm before logout
+function confirmLogout() {
+  if (confirm('ต้องการออกจากระบบหรือไม่?')) {
+    showScreen('s-auth');
+  }
+}
+
+// ── PASSWORD UTILS — FIX BP-02: named strength levels ──
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  const isText = input.type === 'text';
+  input.type = isText ? 'password' : 'text';
+  btn.innerHTML = `<i class="fa-solid fa-eye${isText ? '' : '-slash'}"></i>`;
+  btn.setAttribute('aria-label', isText ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน');
+}
+
+function checkStrength(input) {
+  const val = input.value;
+  let score = 0;
+  if (val.length >= 8)           score++;
+  if (/[A-Z]/.test(val))         score++;
+  if (/[0-9]/.test(val))         score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const levels = {
+    0: { width: '0%',    color: '' },
+    1: { width: '25%',   color: 'var(--red)' },
+    2: { width: '50%',   color: 'var(--amber)' },
+    3: { width: '75%',   color: '#9CCC65' },
+    4: { width: '100%',  color: 'var(--neon)' },
+  };
+
+  const fill = document.getElementById('strength-fill');
+  if (!fill) return;
+  const level = levels[score] || levels[0];
+  fill.style.width      = level.width;
+  fill.style.background = level.color;
+}
+</script>
+</body>
+</html>

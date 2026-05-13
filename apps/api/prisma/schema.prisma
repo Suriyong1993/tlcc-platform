@@ -1,0 +1,444 @@
+// =====================================================
+// TLCC Platform — Database Schema
+// คริสตจักรชีวิตสุขสันต์ (TLCC)
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role { ADMIN MODERATOR LEADER MEMBER GUEST }
+enum Gender { MALE FEMALE OTHER }
+enum MemberRole { ADMIN LEADER MEMBER }
+enum ChatType { DIRECT GROUP BROADCAST }
+enum MessageType { TEXT IMAGE AUDIO SYSTEM }
+enum RegStatus { PENDING CONFIRMED CANCELLED COMPLETED }
+enum PaymentType { TITHE DONATION EVENT_FEE OTHER }
+enum PaymentStatus { PENDING PAID REFUNDED FAILED }
+enum ArticleStatus { DRAFT PUBLISHED ARCHIVED }
+
+// ─── Users & Authentication ──────────────────────────────────────
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  username       String   @unique
+  passwordHash   String
+  avatarUrl      String?
+  role           Role     @default(MEMBER)
+  phone          String?
+  isEmailVerified Boolean @default(false)
+  emailVerifiedAt DateTime?
+  lastLoginAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  profile        Profile?
+  groups         GroupMember[]
+  reports        Report[]
+  messages       Message[]
+  notifications  Notification[]
+  payments       Payment[]
+  activities     Activity[]
+  aiRequests     AIRequest[]
+  auditLogs      AuditLog[]
+  prayerRequests PrayerRequest[]
+  registrations  EventRegistration[]
+  prayers        Prayer[]
+  chatRoomMembers ChatRoomMember[]
+  bookmarks      Bookmark[]
+  refreshToken   Token?
+  discussions    Discussion[]
+  articles       Article[]
+  sermons        Sermon[]
+  uploads        Attachment[]
+  @@index([email]) @@index([role])
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  firstName String?
+  lastName  String?
+  bio       String?
+  gender    Gender?
+  birthDate DateTime?
+  points    Int      @default(0)
+  badges    String[]
+  language  String   @default("th")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+model Token {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
+// ─── Content: Articles & Sermons ─────────────────────────────────
+
+model Article {
+  id          String        @id @default(uuid())
+  authorId    String
+  title       String
+  slug        String        @unique
+  content     String
+  excerpt     String?
+  coverImage  String?
+  status      ArticleStatus @default(DRAFT)
+  tags        String[]
+  views       Int           @default(0)
+  likes       Int           @default(0)
+  comments    Int           @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  author      User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+  commentsArr ArticleComment[]
+  @@index([authorId]) @@index([status]) @@index([publishedAt]) @@index([slug])
+}
+
+model ArticleComment {
+  id        String   @id @default(uuid())
+  articleId String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  @@index([articleId])
+}
+
+model Sermon {
+  id           String   @id @default(uuid())
+  speakerId    String
+  title        String
+  slug         String   @unique
+  description  String?
+  scripture    String?       // ข้อพระคัมภีร์อ้างอิง
+  speakerName  String
+  series       String?       // ชุดคำเทศนา
+  sermonDate   DateTime
+  videoUrl     String?
+  audioUrl     String?
+  transcript   String?
+  thumbnailUrl String?
+  durationSec  Int?
+  tags         String[]
+  views        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  speaker      User     @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+  attachments  Attachment[]
+  @@index([speakerId]) @@index([sermonDate]) @@index([slug]) @@index([series])
+}
+
+// ─── Groups & Community ──────────────────────────────────────────
+
+model Group {
+  id        String    @id @default(uuid())
+  name      String
+  description String?
+  category  String?
+  imageUrl  String?
+  leaderId  String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  members   GroupMember[]
+  activities Activity[]
+  discussions Discussion[]
+  @@index([category])
+}
+
+model GroupMember {
+  id       String     @id @default(uuid())
+  userId   String
+  groupId  String
+  role     MemberRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  @@unique([userId, groupId]) @@index([groupId])
+}
+
+model Discussion {
+  id        String   @id @default(uuid())
+  groupId   String
+  userId    String
+  title     String
+  content   String
+  isSticky  Boolean  @default(false)
+  isLocked  Boolean  @default(false)
+  replies   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repliesArr DiscussionReply[]
+  @@index([groupId]) @@index([createdAt])
+}
+
+model DiscussionReply {
+  id           String   @id @default(uuid())
+  discussionId String
+  userId       String
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  @@index([discussionId])
+}
+
+// ─── Events ──────────────────────────────────────────────────────
+
+model Event {
+  id                   String     @id @default(uuid())
+  title                String
+  description          String?
+  category             String?
+  startDate            DateTime
+  endDate              DateTime?
+  location             String?
+  imageUrl             String?
+  maxCapacity          Int?
+  currentRegistrations Int        @default(0)
+  isPublic             Boolean    @default(true)
+  isActive             Boolean    @default(true)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+  registrations        EventRegistration[]
+  @@index([category]) @@index([startDate])
+}
+
+model EventRegistration {
+  id         String    @id @default(uuid())
+  userId     String
+  eventId    String
+  guestCount Int       @default(1)
+  status     RegStatus @default(PENDING)
+  note       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  @@unique([userId, eventId]) @@index([eventId])
+}
+
+// ─── Reports / Blog Posts ────────────────────────────────────────
+
+model Report {
+  id          String   @id @default(uuid())
+  userId      String?
+  title       String
+  content     String
+  category    String?
+  images      String[]
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  reportImages ReportImage[]
+  @@index([userId]) @@index([isPublished])
+}
+
+model ReportImage {
+  id       String @id @default(uuid())
+  reportId String
+  url      String
+  caption  String?
+  order    Int    @default(0)
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  @@index([reportId])
+}
+
+// ─── Prayer ──────────────────────────────────────────────────────
+
+model PrayerRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  content   String
+  category  String?
+  isPublic  Boolean  @default(false)
+  prayCount Int      @default(0)
+  isAnswered Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayers   Prayer[]
+  @@index([userId]) @@index([category]) @@index([isAnswered])
+}
+
+model Prayer {
+  id        String   @id @default(uuid())
+  requestId String
+  userId    String
+  createdAt DateTime @default(now())
+  request   PrayerRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([requestId, userId]) @@index([requestId])
+}
+
+// ─── Chat ─────────────────────────────────────────────────────────
+
+model ChatRoom {
+  id        String   @id @default(uuid())
+  name      String?
+  type      ChatType @default(DIRECT)
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Message[]
+  members   ChatRoomMember[]
+  @@index([type])
+}
+
+model ChatRoomMember {
+  id         String   @id @default(uuid())
+  chatRoomId String
+  userId     String
+  lastReadAt DateTime?
+  joinedAt   DateTime @default(now())
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([chatRoomId, userId])
+}
+
+model Message {
+  id         String      @id @default(uuid())
+  chatRoomId String
+  senderId   String?
+  content    String
+  imageUrl   String?
+  type       MessageType @default(TEXT)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  chatRoom   ChatRoom    @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender     User?       @relation(fields: [senderId], references: [id], onDelete: SetNull)
+  @@index([chatRoomId]) @@index([createdAt])
+}
+
+// ─── Notifications ───────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  type      String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId]) @@index([isRead])
+}
+
+// ─── Payments ────────────────────────────────────────────────────
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String?
+  amount        Decimal       @default(0)
+  currency      String        @default("THB")
+  type          PaymentType   @default(TITHE)
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String
+  reference     String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId]) @@index([status])
+}
+
+// ─── AI ──────────────────────────────────────────────────────────
+
+model AIRequest {
+  id           String   @id @default(uuid())
+  userId       String?
+  prompt       String
+  model        String?
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  response     String?
+  status       String   @default("completed")
+  cost         Decimal? @default(0)
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId]) @@index([createdAt])
+}
+
+// ─── Activity & Audit ────────────────────────────────────────────
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String?
+  groupId   String?
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  group     Group?   @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  @@index([userId]) @@index([action])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  changes    Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId]) @@index([entityType, entityId]) @@index([createdAt])
+}
+
+// ─── Bookmarks ───────────────────────────────────────────────────
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  entityId  String
+  title     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, type, entityId]) @@index([userId])
+}
+
+// ─── File Attachments ────────────────────────────────────────────
+
+model Attachment {
+  id        String   @id @default(uuid())
+  uploaderId String
+  url       String
+  fileName  String
+  mimeType  String
+  fileSize  Int       // bytes
+  articleId String?
+  sermonId  String?
+  createdAt DateTime @default(now())
+  uploader  User     @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  sermon    Sermon?  @relation(fields: [sermonId], references: [id], onDelete: SetNull)
+  @@index([uploaderId]) @@index([articleId]) @@index([sermonId])
+}

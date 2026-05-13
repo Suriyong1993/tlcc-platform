@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --bg: #181A1F; --surface: #20232A; --neon: #00FF66; }
+body { background: var(--bg); color: #FFF; }

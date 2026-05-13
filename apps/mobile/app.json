@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "TLCC",
+    "slug": "tlcc-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "tlcc",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#181A1F"
+    },
+    "ios": {
+      "bundleIdentifier": "com.tlcc.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#181A1F"
+      },
+      "package": "com.tlcc.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router"],
+    "newArchEnabled": true
+  }
+}
