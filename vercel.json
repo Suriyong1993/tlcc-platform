@@ -1,0 +1,9 @@
+{
+  "buildCommand": null,
+  "devCommand": null,
+  "installCommand": null,
+  "outputDirectory": "prototype",
+  "rewrites": [
+    { "source": "/", "destination": "/tlcc-prototype-v6.2-fixed.html" }
+  ]
+}
